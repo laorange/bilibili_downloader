@@ -17,7 +17,7 @@ class Ui_bilibili_downloader(object):
     def setupUi(self, bilibili_downloader):
         if not bilibili_downloader.objectName():
             bilibili_downloader.setObjectName(u"bilibili_downloader")
-        bilibili_downloader.resize(459, 309)
+        bilibili_downloader.resize(417, 339)
         icon = QIcon()
         icon.addFile(u"static/ico.png", QSize(), QIcon.Normal, QIcon.Off)
         bilibili_downloader.setWindowIcon(icon)
@@ -35,11 +35,11 @@ class Ui_bilibili_downloader(object):
         self.read_log.setObjectName(u"read_log")
         self.centralwidget = QWidget(bilibili_downloader)
         self.centralwidget.setObjectName(u"centralwidget")
-        self.horizontalLayout_4 = QHBoxLayout(self.centralwidget)
-        self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.horizontalSpacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_6 = QHBoxLayout(self.centralwidget)
+        self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
+        self.horizontalSpacer = QSpacerItem(2, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
-        self.horizontalLayout_4.addItem(self.horizontalSpacer)
+        self.horizontalLayout_6.addItem(self.horizontalSpacer)
 
         self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -112,10 +112,10 @@ class Ui_bilibili_downloader(object):
 
         self.horizontalLayout_5.addWidget(self.label_3)
 
-        self.change_path_path = QToolButton(self.centralwidget)
-        self.change_path_path.setObjectName(u"change_path_path")
+        self.change_save_path = QToolButton(self.centralwidget)
+        self.change_save_path.setObjectName(u"change_save_path")
 
-        self.horizontalLayout_5.addWidget(self.change_path_path)
+        self.horizontalLayout_5.addWidget(self.change_save_path)
 
         self.save_path = QLabel(self.centralwidget)
         self.save_path.setObjectName(u"save_path")
@@ -129,6 +129,51 @@ class Ui_bilibili_downloader(object):
 
         self.horizontalLayout_3 = QHBoxLayout()
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.label_7 = QLabel(self.centralwidget)
+        self.label_7.setObjectName(u"label_7")
+        self.label_7.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
+
+        self.horizontalLayout_3.addWidget(self.label_7)
+
+        self.video_format = QComboBox(self.centralwidget)
+        self.video_format.addItem("")
+        self.video_format.addItem("")
+        self.video_format.setObjectName(u"video_format")
+
+        self.horizontalLayout_3.addWidget(self.video_format)
+
+        self.line_3 = QFrame(self.centralwidget)
+        self.line_3.setObjectName(u"line_3")
+        self.line_3.setFrameShape(QFrame.VLine)
+        self.line_3.setFrameShadow(QFrame.Sunken)
+
+        self.horizontalLayout_3.addWidget(self.line_3)
+
+        self.label_11 = QLabel(self.centralwidget)
+        self.label_11.setObjectName(u"label_11")
+        self.label_11.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
+
+        self.horizontalLayout_3.addWidget(self.label_11)
+
+        self.video_quality = QComboBox(self.centralwidget)
+        self.video_quality.addItem("")
+        self.video_quality.addItem("")
+        self.video_quality.addItem("")
+        self.video_quality.addItem("")
+        self.video_quality.addItem("")
+        self.video_quality.setObjectName(u"video_quality")
+
+        self.horizontalLayout_3.addWidget(self.video_quality)
+
+        self.horizontalSpacer_5 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_3.addItem(self.horizontalSpacer_5)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_3)
+
+        self.horizontalLayout_4 = QHBoxLayout()
+        self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
         self.gridLayout = QGridLayout()
         self.gridLayout.setObjectName(u"gridLayout")
         self.label_9 = QLabel(self.centralwidget)
@@ -157,19 +202,20 @@ class Ui_bilibili_downloader(object):
         self.gridLayout.addWidget(self.label_8, 0, 0, 1, 1)
 
 
-        self.horizontalLayout_3.addLayout(self.gridLayout)
+        self.horizontalLayout_4.addLayout(self.gridLayout)
 
         self.line = QFrame(self.centralwidget)
         self.line.setObjectName(u"line")
         self.line.setFrameShape(QFrame.VLine)
         self.line.setFrameShadow(QFrame.Sunken)
 
-        self.horizontalLayout_3.addWidget(self.line)
+        self.horizontalLayout_4.addWidget(self.line)
 
         self.verticalLayout_3 = QVBoxLayout()
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
         self.label_10 = QLabel(self.centralwidget)
         self.label_10.setObjectName(u"label_10")
+        self.label_10.setMinimumSize(QSize(100, 0))
         self.label_10.setAlignment(Qt.AlignCenter)
 
         self.verticalLayout_3.addWidget(self.label_10)
@@ -182,67 +228,42 @@ class Ui_bilibili_downloader(object):
         self.verticalLayout_3.addWidget(self.speed)
 
 
-        self.horizontalLayout_3.addLayout(self.verticalLayout_3)
-
-        self.line_3 = QFrame(self.centralwidget)
-        self.line_3.setObjectName(u"line_3")
-        self.line_3.setFrameShape(QFrame.VLine)
-        self.line_3.setFrameShadow(QFrame.Sunken)
-
-        self.horizontalLayout_3.addWidget(self.line_3)
-
-        self.verticalLayout_4 = QVBoxLayout()
-        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
-        self.label_7 = QLabel(self.centralwidget)
-        self.label_7.setObjectName(u"label_7")
-        self.label_7.setAlignment(Qt.AlignCenter)
-
-        self.verticalLayout_4.addWidget(self.label_7)
-
-        self.format = QComboBox(self.centralwidget)
-        self.format.addItem("")
-        self.format.addItem("")
-        self.format.setObjectName(u"format")
-
-        self.verticalLayout_4.addWidget(self.format)
-
-
-        self.horizontalLayout_3.addLayout(self.verticalLayout_4)
+        self.horizontalLayout_4.addLayout(self.verticalLayout_3)
 
         self.line_2 = QFrame(self.centralwidget)
         self.line_2.setObjectName(u"line_2")
         self.line_2.setFrameShape(QFrame.VLine)
         self.line_2.setFrameShadow(QFrame.Sunken)
 
-        self.horizontalLayout_3.addWidget(self.line_2)
+        self.horizontalLayout_4.addWidget(self.line_2)
 
         self.download_button = QPushButton(self.centralwidget)
         self.download_button.setObjectName(u"download_button")
         self.download_button.setMinimumSize(QSize(71, 41))
 
-        self.horizontalLayout_3.addWidget(self.download_button)
+        self.horizontalLayout_4.addWidget(self.download_button)
 
 
-        self.verticalLayout.addLayout(self.horizontalLayout_3)
+        self.verticalLayout.addLayout(self.horizontalLayout_4)
 
         self.verticalSpacer_2 = QSpacerItem(13, 13, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
         self.verticalLayout.addItem(self.verticalSpacer_2)
 
 
-        self.horizontalLayout_4.addLayout(self.verticalLayout)
+        self.horizontalLayout_6.addLayout(self.verticalLayout)
 
         self.horizontalSpacer_2 = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
-        self.horizontalLayout_4.addItem(self.horizontalSpacer_2)
+        self.horizontalLayout_6.addItem(self.horizontalSpacer_2)
 
-        self.horizontalLayout_4.setStretch(0, 1)
-        self.horizontalLayout_4.setStretch(1, 4)
-        self.horizontalLayout_4.setStretch(2, 1)
+        self.horizontalLayout_6.setStretch(0, 1)
+        self.horizontalLayout_6.setStretch(1, 3)
+        self.horizontalLayout_6.setStretch(2, 1)
         bilibili_downloader.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(bilibili_downloader)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 459, 26))
+        self.menubar.setGeometry(QRect(0, 0, 417, 26))
         self.menu = QMenu(self.menubar)
         self.menu.setObjectName(u"menu")
         self.menu_2 = QMenu(self.menubar)
@@ -280,16 +301,23 @@ class Ui_bilibili_downloader(object):
         self.label_2.setText(QCoreApplication.translate("bilibili_downloader", u"\u89c6\u9891\u94fe\u63a5\uff1a", None))
         self.url.setPlaceholderText(QCoreApplication.translate("bilibili_downloader", u"\u8bf7\u5728\u6b64\u5904\u7c98\u8d34\u9700\u8981\u4e0b\u8f7d\u7684\u89c6\u9891\u94fe\u63a5", None))
         self.label_3.setText(QCoreApplication.translate("bilibili_downloader", u"\u4fdd\u5b58\u8def\u5f84\uff1a", None))
-        self.change_path_path.setText(QCoreApplication.translate("bilibili_downloader", u"\u66f4\u6539", None))
+        self.change_save_path.setText(QCoreApplication.translate("bilibili_downloader", u"\u66f4\u6539", None))
         self.save_path.setText(QCoreApplication.translate("bilibili_downloader", u"-----", None))
+        self.label_7.setText(QCoreApplication.translate("bilibili_downloader", u"\u6587\u4ef6\u683c\u5f0f\uff1a", None))
+        self.video_format.setItemText(0, QCoreApplication.translate("bilibili_downloader", u".flv", None))
+        self.video_format.setItemText(1, QCoreApplication.translate("bilibili_downloader", u".mp4", None))
+
+        self.label_11.setText(QCoreApplication.translate("bilibili_downloader", u"\u89c6\u9891\u753b\u8d28\uff1a", None))
+        self.video_quality.setItemText(0, QCoreApplication.translate("bilibili_downloader", u"360P", None))
+        self.video_quality.setItemText(1, QCoreApplication.translate("bilibili_downloader", u"480P", None))
+        self.video_quality.setItemText(2, QCoreApplication.translate("bilibili_downloader", u"720P", None))
+        self.video_quality.setItemText(3, QCoreApplication.translate("bilibili_downloader", u"1080P", None))
+        self.video_quality.setItemText(4, QCoreApplication.translate("bilibili_downloader", u"1080P+", None))
+
         self.label_9.setText(QCoreApplication.translate("bilibili_downloader", u"\u603b\u8fdb\u5ea6", None))
         self.label_8.setText(QCoreApplication.translate("bilibili_downloader", u"\u8fdb\u5ea6", None))
         self.label_10.setText(QCoreApplication.translate("bilibili_downloader", u"\u4e0b\u8f7d\u901f\u5ea6", None))
         self.speed.setText(QCoreApplication.translate("bilibili_downloader", u"----", None))
-        self.label_7.setText(QCoreApplication.translate("bilibili_downloader", u"\u6587\u4ef6\u683c\u5f0f", None))
-        self.format.setItemText(0, QCoreApplication.translate("bilibili_downloader", u".flv", None))
-        self.format.setItemText(1, QCoreApplication.translate("bilibili_downloader", u".mp4", None))
-
         self.download_button.setText(QCoreApplication.translate("bilibili_downloader", u"\u4e0b\u8f7d", None))
         self.menu.setTitle(QCoreApplication.translate("bilibili_downloader", u"\u6587\u4ef6", None))
         self.menu_2.setTitle(QCoreApplication.translate("bilibili_downloader", u"\u5e2e\u52a9", None))

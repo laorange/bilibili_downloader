@@ -1,3 +1,4 @@
+import datetime
 import os
 import sqlite3
 import sys
@@ -7,7 +8,7 @@ from PySide2.QtCore import QRect, QMetaObject, QCoreApplication
 from PySide2.QtGui import QIcon
 
 from PySide2.QtWidgets import QApplication, QMessageBox, QPushButton, QPlainTextEdit, QErrorMessage, QVBoxLayout, \
-    QHBoxLayout, QGroupBox, QLabel, QMainWindow, QWidget
+    QHBoxLayout, QGroupBox, QLabel, QMainWindow, QWidget, QFileDialog
 from PySide2.QtUiTools import QUiLoader
 import PySide2
 
@@ -23,32 +24,57 @@ class MainWindow(QMainWindow):
         self.ui = Ui_bilibili_downloader()
         self.ui.setupUi(self)
 
-        self.db_name = "database.sqlite3"
-        self.db = self.connect_db()
+        self.db_name: str = "database.sqlite3"
+        self.db: sqlite3.Connection = self.connect_db()
         self.log_window = LogWindow(self.db)
 
-        self.OUTPUT_PATH = BASE_DIR / "output"
-        self.ui.save_path.setText(str(self.OUTPUT_PATH))
+        # region 加载设置
+        self.config: list = self.get_config()
+        self.SAVE_PATH: Path = self.config[1]
+        self.video_format: str = self.config[2]
+        self.ui.video_format.setCurrentText(self.video_format)
+        self.ui.save_path.setText(str(self.SAVE_PATH))
+        # endregion
 
+        # region 绑定主窗口-槽事件
         self.ui.open_base_dir.triggered.connect(self.open_base_dir)
         self.ui.quit.triggered.connect(self.quit)
         self.ui.read_log.triggered.connect(self.read_log)
+        self.ui.change_save_path.clicked.connect(self.change_save_path)
+        self.ui.video_format.currentIndexChanged.connect(self.video_format_event)
+        # endregion
+
+    def video_format_event(self):
+        new_video_format = self.ui.video_format.currentText()
+        with CursorDecorator(self.db) as c:
+            c.execute(f"update Config set video_format='{new_video_format}' where true;")
+
+    def get_config(self) -> list:
+        with CursorDecorator(self.db) as c:
+            c.execute("select * from Config")
+            config: tuple = c.fetchone()
+        return list(config)
 
     def connect_db(self):
-        db_exists_flag = (db_path := (BASE_DIR / self.db_name)).exists()
+        db_exists_flag: bool = (db_path := (BASE_DIR / self.db_name)).exists()
         db = sqlite3.connect(str(db_path))
 
         if not db_exists_flag:
-            c = db.cursor()
-            c.execute("create table Log (id INTEGER PRIMARY KEY AUTOINCREMENT, datetime char(20), info text)")
-            c.close()
-            db.commit()
+            with CursorDecorator(db) as c:
+                c.execute("create table Log (id INTEGER PRIMARY KEY AUTOINCREMENT, datetime char(20), info text)")
+                c.execute("create table Config (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                          "save_path char(300), video_format char(10), video_quality char(10))")
+                c.execute(f"insert into Config (save_path, video_format, video_quality) "
+                          f"VALUES ('{str(BASE_DIR / 'output')}', '.flv', '16')")
+
+                c.execute("create table Cookies (id INTEGER PRIMARY KEY AUTOINCREMENT, datetime char(20), SESSDATA text)")
+                c.execute(f"insert into Cookies (datetime, SESSDATA) VALUES ('{Util.get_datetime_str_now()}', '75a75cf2%2C1564669876%2Cb7c7b171')")
         return db
 
     def show(self):
         self.showMinimized()
 
-    # region Action事件
+    # region Action-事件
     def open_base_dir(self):
         if sys.platform.startswith('win'):
             os.startfile(BASE_DIR)
@@ -62,6 +88,17 @@ class MainWindow(QMainWindow):
 
     def read_log(self):
         self.log_window.show()
+
+    # endregion
+
+    # region 组件-对应的事件
+    def change_save_path(self):
+        file_dialog = QFileDialog(self)
+        if new_save_path := file_dialog.getExistingDirectory(self, "请选择用于保存下载的视频的文件夹"):
+            self.SAVE_PATH = new_save_path
+            self.ui.save_path.setText(new_save_path)
+            with CursorDecorator(self.db) as c:
+                c.execute(f"update Config set save_path='{new_save_path}' where true;")
     # endregion
 
 
@@ -77,25 +114,19 @@ class LogWindow(QWidget):
         self.ui.clear_log.clicked.connect(self.clear_log)
 
     def clear_log(self):
-        choice = QMessageBox.question(self, "即将删除日志", "是否删除当前的所有日志？")
+        choice: bool = QMessageBox.question(self, "即将删除日志", "是否删除当前的所有日志？")
         if choice:
-            c = self.db.cursor()
-            c.execute("delete from Log where true;")
-            c.close()
-            self.db.commit()
+            with CursorDecorator(self.db) as c:
+                c.execute("delete from Log where true;")
         self.refresh_log()
 
     def refresh_log(self):
-        c = self.db.cursor()
-        c.execute("select datetime,info from Log;")
-        log_output = ""
-        for log in c.fetchall():
-            log_output += f"{log[0]}: {log[1]}\n"
-        c.close()
+        with CursorDecorator(self.db) as c:
+            c.execute("select datetime,info from Log;")
+            log_output: str = ""
+            for log in c.fetchall():
+                log_output += f"{log[0]}: {log[1]}\n"
         self.ui.log_text.setPlainText(log_output if log_output else "当前没有日志！")
-
-    # def show(self):
-    #     super(LogWindow, self).show()
 
 
 class Util:
@@ -106,6 +137,10 @@ class Util:
         if not dir_path.exists():
             os.mkdir(dir_path)
         return dir_path
+
+    @staticmethod
+    def get_datetime_str_now():
+        return datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
 
     # @staticmethod
     # def download_from_url(url, file_path) -> bool:
@@ -132,6 +167,23 @@ class Util:
     #     return True
 
 
+class CursorDecorator:
+    def __init__(self, db: sqlite3.Connection):
+        self.db: sqlite3.Connection = db
+
+    def __enter__(self):
+        self.cursor = self.db.cursor()
+        return self.cursor
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.cursor.close()
+        if exc_tb is None:
+            self.db.commit()
+        else:
+            print("EXCEPTION! type:[", exc_type, "],value:[", exc_val, "],exc_tb:[", exc_tb, "]")
+            self.db.rollback()
+
+
 if __name__ == '__main__':
     app = QApplication([])
 
@@ -139,3 +191,6 @@ if __name__ == '__main__':
     window.show()
 
     app.exec_()
+
+    with open("requirements.txt") as f:
+        f.read()

@@ -20,10 +20,6 @@ import requests, time, urllib.request, re
 from moviepy.editor import *
 import os, sys, threading, json
 
-import imageio
-
-imageio.plugins.ffmpeg.download()
-
 
 # 访问API地址
 def get_play_list(aid, cid, quality):
