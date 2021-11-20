@@ -1,49 +1,26 @@
+import abc
 import hashlib
 import re
+import asyncio
+from pathlib import Path
+from typing import List, Union, Dict
 
 import httpx
-import abc
-from typing import List, Union, Dict
 
 base_headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'
 }
 
-async_downloader = httpx.AsyncClient()
-
-
-# https://interface.bilibili.com/v2/playurl?appkey=iVGUTjsxvpLeuDCf&cid=387281578&otype=json&qn=80&quality=80&type=&sign=05b82c5bcc51c8b4614676da088140e0
-
-# def get_cid(bv_id="BV1UL411t7CR"):
-#     bv_id = bv_id
-#     api_url_root = "https://api.bilibili.com/x/web-interface/view?"
-#     api_url = api_url_root + "bvid=" + bv_id
-#
-#     print(api_url)
-#
-#     api_data: dict = httpx.get(api_url, headers={
-#         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'
-#     }).json()
-#
-#     print(api_data)
-#     try:
-#         return api_data.get("data").get("cid")
-#     except Exception as e:
-#         print(e)
-#         print("cid获取时出错")
-
-
-# def get_api_url(cid: str):
-#     appkey = 'iVGUTjsxvpLeuDCf'
-#     sec = 'aHRmhWMLkdeMuILqORnYZocwMBpMEOdt'
-#
-#     params = 'appkey=%s&cid=%s&otype=json&qn=%s&quality=%s&type=' % (appkey, cid, 80, 80)
-#     sign_key = hashlib.md5(bytes(params + sec, 'utf8')).hexdigest()
-#     url_api = f'https://interface.bilibili.com/v2/playurl?{params}&sign={sign_key}'
-#
-#     print(url_api, appkey, cid, 80, params, sign_key)
-#
-#     return url_api
+download_base_headers = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:56.0) Gecko/20100101 Firefox/56.0',
+    'Accept': '*/*',
+    'Accept-Language': 'en-US,en;q=0.5',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Range': 'bytes=0-',  # Range 的值要为 bytes=0- 才能下载完整视频
+    'Origin': 'https://www.bilibili.com',
+    "Referer": "https://www.bilibili.com/video/",
+    'Connection': 'keep-alive',
+}
 
 
 class PageInAPI:
@@ -66,14 +43,29 @@ class PageInAPI:
     # def get_url_parameters(self):
 
 
+class FinalUrlContainer:
+    def __init__(self, url, size: int = 1):
+        self.url = url
+        self.size = size
+
+
 class VideoDownloader:
-    def __init__(self, title, page: PageInAPI, url_list: List[str]):
+    def __init__(self, title, page: PageInAPI, target_url_list: List[FinalUrlContainer]):
         self.title = title
         self.page = page
-        self.url_list = url_list
+        self.final_url_list = target_url_list
 
-    async def download(self, local_path):
-        pass
+    async def download(self, local_path: Path):
+        for url_container in self.final_url_list:
+            size_record = 0
+            async_downloader = httpx.AsyncClient(headers=download_base_headers)
+            with open(Util.ensure_dir_exists(local_path / self.title) / (self.page.part + ".mp4"), 'wb') as f:
+                async with async_downloader.stream('GET', url_container.url) as response:
+                    async for chunk in response.aiter_raw():
+                        size_record += len(chunk)
+                        print(f"\r进度：{size_record / url_container.size * 100:.2f}%", end="")
+                        f.write(chunk)
+        await asyncio.sleep(1)
 
 
 class VideoParserInterface(abc.ABC):
@@ -83,8 +75,6 @@ class VideoParserInterface(abc.ABC):
         self.title: str = "视频标题（待更新）"
         self.page_list: List[PageInAPI] = self.get_page_list()
         self.downloader_list = self.get_downloader_list()
-        # self.interface_of_play_url: List[str] = self.get_interface_of_play_url()
-        # self.play_list: List[str] = self.get_play_list()
 
     def set_title(self, title: str):
         self.title = title
@@ -128,7 +118,7 @@ class NormalVideoParser(VideoParserInterface):
                 **base_headers,
                 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
             }).json()
-            downloader_list.append(VideoDownloader(self.title, page, [chunk['url'] for chunk in html['durl']]))
+            downloader_list.append(VideoDownloader(self.title, page, [FinalUrlContainer(chunk['url'], int(chunk['size'])) for chunk in html['durl']]))
         return downloader_list
 
     def get_encrypted_api(self, c_id) -> str:
@@ -143,6 +133,7 @@ class NormalVideoParser(VideoParserInterface):
 class FanVideoParser(VideoParserInterface):
     def __init__(self, url: str, quality: Union[str, int]):
         super().__init__(url, quality)
+        raise Exception("当前版本不支持下载番剧")
 
     def get_page_list(self) -> List[PageInAPI]:
         pass
@@ -165,12 +156,45 @@ class VideoHandler:
             return NormalVideoParser(self.url, self.quality)
 
     def start_download(self, safe_path):
+        async_tasks = []
         for downloader in self.video_parser.downloader_list:
-            downloader.download(safe_path)
+            async_tasks.append(downloader.download(safe_path))
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(asyncio.wait(async_tasks))
+        loop.close()
+
+
+class Util:
+    @staticmethod
+    def ensure_dir_exists(dir_path: Path) -> Path:
+        import os
+        if not dir_path.parent.exists():
+            Util.ensure_dir_exists(dir_path.parent)
+        if not dir_path.exists():
+            os.mkdir(dir_path)
+        return dir_path
+
+    @staticmethod
+    def get_datetime_str_now():
+        import datetime
+        return datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
 
 
 if __name__ == '__main__':
-    # print(get_cid())
-    # cid = get_cid()
-    # print(get_api_url(cid))
-    handle = VideoHandler('https://www.bilibili.com/video/BV1UL411t7CR?spm_id_from=333.999.0.0', 16)
+    # handle = VideoHandler('https://www.bilibili.com/video/BV11K411376D', 16)
+    handle = VideoHandler('https://www.bilibili.com/video/BV13o4y1U7hR', 16)
+    handle.start_download(Path(__file__).resolve().parent)
+    print()
+
+# https://www.bilibili.com/video/BV11K411376D?spm_id_from=333.999.0.0
+# https://www.bilibili.com/video/BV1UL411t7CR?spm_id_from=333.999.0.0
+# https://api.bilibili.com/x/web-interface/view?aid=377346670
+
+# https://api.bilibili.com/x/web-interface/view?bvid=BV1UL411t7CR
+# https://api.bilibili.com/x/web-interface/view?bvid=BV11K411376D
+# https://api.bilibili.com/x/web-interface/view?bvid=BV13o4y1U7hR
+# https://interface.bilibili.com/v2/playurl?appkey=iVGUTjsxvpLeuDCf&cid=387281578&otype=json&qn=80&quality=80&type=&sign=05b82c5bcc51c8b4614676da088140e0
+# https://interface.bilibili.com/v2/playurl?appkey=iVGUTjsxvpLeuDCf&cid=392043279&otype=json&qn=80&quality=80&type=&sign=05b82c5bcc51c8b4614676da088140e0
+# https://interface.bilibili.com/v2/playurl?appkey=iVGUTjsxvpLeuDCf&cid=392043279&otype=json&qn=80&quality=80&type=&sign=4755c4da064d8ba9a4dd5600c00ab842
+
+# https://interface.bilibili.com/v2/playurl?appkey=iVGUTjsxvpLeuDCf&cid=387281578&otype=json&qn=80&quality=80&type=&sign=05b82c5bcc51c8b4614676da088140e0
