@@ -1,6 +1,5 @@
 # https://www.bilibili.com/bangumi/play/ss2572
-# https://api.bilibili.com/x/web-interface/view?aid=377346670
-#
+
 # !/usr/bin/python
 # -*- coding:utf-8 -*-
 # time: 2019/07/21--20:12
@@ -25,8 +24,6 @@ import os, sys, threading, json
 # 访问API地址
 def get_play_list(aid, cid, quality):
     url_api = 'https://api.bilibili.com/x/player/playurl?cid={}&avid={}&qn={}'.format(cid, aid, quality)
-    print(url_api,cid,aid,quality)
-    breakpoint()
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
         'Cookie': 'SESSDATA=75a75cf2%2C1564669876%2Cb7c7b171',  # 登录B站后复制一下cookie中的SESSDATA字段,有效期1个月
@@ -179,18 +176,18 @@ if __name__ == '__main__':
     # 用户输入番剧完整链接地址
     # 1. https://www.bilibili.com/bangumi/play/ep267692 (用带ep链接)
     # 2. https://www.bilibili.com/bangumi/play/ss26878  (不要用这个ss链接,epinfo的aid会变成'-1')
-    print('*' * 30 + 'B站番剧视频下载小助手' + '*' * 30)
-    print('[提示]: 1.如果您想下载720P60,1080p+,1080p60质量的视频,请将35行代码中的SESSDATA改成你登录大会员后得到的SESSDATA,普通用户的SESSDATA最多只能下载1080p的视频')
-    print('       2.若发现下载的视频质量在720p以下,请将35行代码中的SESSDATA改成你登录后得到的SESSDATA(有效期一个月),而失效的SESSDATA就只能下载480p的视频')
+    # print('*' * 30 + 'B站番剧视频下载小助手' + '*' * 30)
+    # print('[提示]: 1.如果您想下载720P60,1080p+,1080p60质量的视频,请将35行代码中的SESSDATA改成你登录大会员后得到的SESSDATA,普通用户的SESSDATA最多只能下载1080p的视频')
+    # print('       2.若发现下载的视频质量在720p以下,请将35行代码中的SESSDATA改成你登录后得到的SESSDATA(有效期一个月),而失效的SESSDATA就只能下载480p的视频')
+    # start = input('请输入您要下载的B站番剧的完整链接地址(例如:https://www.bilibili.com/bangumi/play/ep267692):')
 
-    start = input('请输入您要下载的B站番剧的完整链接地址(例如:https://www.bilibili.com/bangumi/play/ep267692):')
+    start = "https://www.bilibili.com/bangumi/play/ss2572"
     ep_url = start
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'
     }
     html = requests.get(ep_url, headers=headers).text
     ep_info = re.search(r'INITIAL_STATE__=(.*?"]});', html).group(1)
-    # print(ep_info)
     ep_info = json.loads(ep_info)
     # print('您将要下载的番剧名为:' + ep_info['mediaInfo']['title']) # 字段格式太不统一了
     y = input('请输入1或2 - 1.只下载当前一集 2.下载此番剧的全集:')

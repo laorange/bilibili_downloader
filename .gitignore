@@ -133,3 +133,4 @@ dmypy.json
 .idea/
 output/
 bilibili_video/
+exe/
