@@ -4,7 +4,8 @@ from .common_util import Util
 from pathlib import Path
 import httpx
 import asyncio
-from .main_ui import Ui_bilibili_downloader
+# from .main_ui import Ui_bilibili_downloader
+from .signals import my_signal
 
 
 class MyConfig:
@@ -26,44 +27,60 @@ class MyConfig:
 
 
 class UiToolKit:
-    def __init__(self, main_windows_ui: Ui_bilibili_downloader):
-        self.ui = main_windows_ui
+    def __init__(self):
         self.recorded_time = time.time()
+        self.recorded_size = 0
 
     def update_record_time(self):
         self.recorded_time = time.time()
+        self.recorded_size = 0
 
-    def enable_download_button(self):
-        self.ui.download_button.setEnabled(True)
+    @staticmethod
+    def enable_download_button():
+        my_signal.enable_download_button.emit()
 
-    def disable_download_button(self):
-        self.ui.download_button.setEnabled(False)
+    @staticmethod
+    def disable_download_button():
+        my_signal.disable_download_button.emit()
 
-    def set_download_button_text(self, text):
-        self.ui.download_button.setText(text)
+    @staticmethod
+    def set_download_button_text(text):
+        my_signal.set_download_button_text.emit(text)
 
-    def set_speed(self, speed_of_bytes: int):
-        self.ui.speed.setText(Util.get_format_size(speed_of_bytes) + "/s")
+    @staticmethod
+    def set_speed(speed_str: str):
+        my_signal.set_speed.emit(speed_str)
 
-    def set_progress_bar(self, progress_value: int):
-        self.ui.progress_bar.setValue(progress_value)
+    @staticmethod
+    def set_progress_bar(progress_value: int):
+        my_signal.set_progress_bar.emit(progress_value)
 
-    def set_all_progress_bar(self, all_progress_value: int):
-        self.ui.all_progress_bar.setValue(all_progress_value)
+    @staticmethod
+    def set_all_progress_bar(all_progress_value: int):
+        my_signal.set_all_progress_bar.emit(all_progress_value)
 
-    def update_status_on_ui(self, speed_of_bytes: int, progress_value: int, all_progress_value: int):
-        if time.time() - self.recorded_time > MyConfig.UI_REFRESH_INTERVAL:
+    # todo: 新增question、about、critical
+    def question_about_critical(self):
+        pass
+
+    def update_status_on_ui(self, progress_value: int, all_progress_value: int):
+        if (interval_time := (time.time() - self.recorded_time)) > MyConfig.UI_REFRESH_INTERVAL:
+            speed = int(self.recorded_size / interval_time)
+            speed_text = Util.get_format_size(speed) + "/s"
             self.update_record_time()
-            self.set_speed(speed_of_bytes)
+            self.set_speed(speed_text)
             self.set_progress_bar(progress_value)
             self.set_all_progress_bar(all_progress_value)
 
     def initialize_status(self):
-        self.ui.speed.setText("----")
+        self.set_speed("----")
         self.set_progress_bar(0)
         self.set_all_progress_bar(0)
         self.enable_download_button()
         self.set_download_button_text("下载")
+
+
+ui_tool_kit = UiToolKit()
 
 
 class PageInAPI:
@@ -95,22 +112,20 @@ class VideoDownloader:
         self.title = title
         self.page = page
         self.final_url_list = target_url_list
+        self.local_path = Path(__file__)  # 随便设个值
 
-    async def download(self, local_path: Path, ui_tool_kit: UiToolKit, all_progress_value: Union[int, float]):
+    async def download(self, save_path: Path, all_progress_value: Union[int, float]):
+        self.local_path = Util.ensure_dir_exists(save_path / self.title)
         for url_container in self.final_url_list:
             size_record = 0
             async_downloader = httpx.AsyncClient(headers=MyConfig.download_base_headers)
-            with open(Util.ensure_dir_exists(local_path / self.title) / (self.page.part + ".mp4"), 'wb') as f:
-                recorded_time = time.time()
+            with open(self.local_path / (self.page.part + ".mp4"), 'wb') as f:
                 async with async_downloader.stream('GET', url_container.url) as response:
                     async for chunk in response.aiter_bytes():
                         size_record += len(chunk)
-                        # recorded_time = time.time()
-                        # print("103:", recorded_time)
-                        speed = int(len(chunk) / (time.time() - recorded_time + 1e-8))
-                        recorded_time = time.time()
                         progress = int(size_record / url_container.size * 100)
-                        ui_tool_kit.update_status_on_ui(speed, progress, all_progress_value)
+                        ui_tool_kit.recorded_size += len(chunk)
+                        ui_tool_kit.update_status_on_ui(progress, all_progress_value)
                         f.write(chunk)
             # await async_downloader.aclose()
         await asyncio.sleep(1)

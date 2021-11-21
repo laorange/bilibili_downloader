@@ -2,11 +2,11 @@ import asyncio
 from pathlib import Path
 
 from .video_parsers import *
-from .my_classes import UiToolKit
+from .my_classes import ui_tool_kit
 
 
 class VideoHandler:
-    def __init__(self, url, quality: Union[str, int], save_path: Path, ui_tool_kit: UiToolKit):
+    def __init__(self, url, quality: Union[str, int], save_path: Path):
         if not url:
             raise Exception("视频地址无效！请重新输入")
         self.url = url
@@ -25,10 +25,14 @@ class VideoHandler:
     def start_download(self):
         async_tasks = []
         for _index, downloader in enumerate(self.video_parser.downloader_list):
-            async_tasks.append(downloader.download(self.save_path, self.ui_tool_kit, (_index + 1) / len(self.video_parser.downloader_list) * 100))
+            async_tasks.append(downloader.download(self.save_path, (_index + 1) / len(self.video_parser.downloader_list) * 100))
+        new_loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(new_loop)
         loop = asyncio.get_event_loop()
         loop.run_until_complete(asyncio.wait(async_tasks))
         loop.close()
+        # for task in async_tasks:
+        #     asyncio.run(task)
 
 
 if __name__ == '__main__':

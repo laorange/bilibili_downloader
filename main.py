@@ -11,8 +11,9 @@ from PySide2.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, Q
 from util.main_ui import Ui_bilibili_downloader
 from util.log_ui import Ui_log
 from util.common_util import Util, CursorDecorator
-from util.my_classes import UiToolKit
+from util.my_classes import ui_tool_kit
 from util.video_handler import VideoHandler
+from util.signals import my_signal
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -37,7 +38,7 @@ class MainWindow(QMainWindow):
         self.video_quality: str = self.config[3]
         self.ui.video_quality.setCurrentIndex(self.quality_choices.index(self.video_quality))
         self.ui.save_path.setText(str(self.SAVE_PATH))
-        self.ui_tool_kit = UiToolKit(self.ui)
+        self.ui_tool_kit = ui_tool_kit
         # endregion
 
         # region 绑定主窗口-槽事件
@@ -48,6 +49,15 @@ class MainWindow(QMainWindow):
         self.ui.video_format.currentIndexChanged.connect(self.video_format_change_event)
         self.ui.video_quality.currentIndexChanged.connect(self.video_quality_change_event)
         self.ui.download_button.clicked.connect(self.download_button_clicked_event)
+
+        # region 自定义信号绑定的事件
+        my_signal.enable_download_button.connect(self.enable_download_button)
+        my_signal.disable_download_button.connect(self.disable_download_button)
+        my_signal.set_download_button_text.connect(self.set_download_button_text)
+        my_signal.set_speed.connect(self.set_speed)
+        my_signal.set_progress_bar.connect(self.set_progress_bar)
+        my_signal.set_all_progress_bar.connect(self.set_all_progress_bar)
+        # endregion
         # endregion
 
     def get_config(self) -> list:
@@ -83,7 +93,7 @@ class MainWindow(QMainWindow):
     # region Action-事件
     def open_window_of_a_dir(self, dir_path: Path = None):
         if sys.platform.startswith('win'):
-            if dir_path is None:
+            if not dir_path:
                 dir_path = BASE_DIR
             os.startfile(dir_path)
         else:
@@ -118,35 +128,52 @@ class MainWindow(QMainWindow):
         with CursorDecorator(self.db) as c:
             c.execute(f"update MyConfig set video_quality='{new_video_quality}' where true;")
 
-    def download_button_clicked_event(self):
-        def download_func(self):
-            try:
-                self.ui_tool_kit.disable_download_button()
-                self.ui_tool_kit.set_download_button_text("解析中")
-                video_handler = VideoHandler(url, self.get_video_quality(), self.SAVE_PATH, self.ui_tool_kit)
-                video_info_list = [f"{downloader.title}-{downloader.page.part}" for downloader in video_handler.video_parser.downloader_list]
-                video_info_showed = "以下视频将会被下载，请确认：\n" + "\n".join(video_info_list)
-                choice = QMessageBox.question(self, "是否开始下载?", video_info_showed)
-                if choice == QMessageBox.Yes:
-                    self.ui_tool_kit.set_download_button_text("下载中")
-                    video_handler.start_download()
-                self.ui_tool_kit.initialize_status()
+    def enable_download_button(self):
+        self.ui.download_button.setEnabled(True)
 
-                choice = QMessageBox.question(self, "完成", "下载完成！是否打开视频所在文件夹？")
-                if choice == QMessageBox.Yes:
-                    self.open_window_of_a_dir(self.SAVE_PATH)
-            except Exception as e:
-                from traceback import print_exc
-                print_exc()
-                QMessageBox.critical(self, "出错了", "\n".join(e.args))
+    def disable_download_button(self):
+        self.ui.download_button.setEnabled(False)
+
+    def set_download_button_text(self, text):
+        self.ui.download_button.setText(text)
+
+    def set_speed(self, speed_text: str):
+        self.ui.speed.setText(speed_text)
+
+    def set_progress_bar(self, progress_value: int):
+        self.ui.progress_bar.setValue(progress_value)
+
+    def set_all_progress_bar(self, all_progress_value: int):
+        self.ui.all_progress_bar.setValue(all_progress_value)
+
+    def download_button_clicked_event(self):
+        def download_func(_self):
+            _self.ui_tool_kit.set_download_button_text("下载中")
+            video_handler.start_download()
+            open_choice = QMessageBox.question(_self, "完成", "下载完成！是否打开视频所在文件夹？")
+            if open_choice == QMessageBox.Yes:
+                _self.open_window_of_a_dir(video_handler.video_parser.downloader_list[0].local_path)
+            ui_tool_kit.initialize_status()
 
         url = self.ui.url.text()
         if not url.strip():
             QMessageBox.critical(self, "没有检测到输入!", "请在输入链接后再点击下载")
         else:
-            # task = Thread(target=download_func, args=[self])
-            # task.start()
-            download_func(self)
+            try:
+                self.ui_tool_kit.disable_download_button()
+                self.ui_tool_kit.set_download_button_text("解析中")
+                video_handler = VideoHandler(url, self.get_video_quality(), self.SAVE_PATH)
+                video_info_list = [f"{downloader.title}-{downloader.page.part}" for downloader in video_handler.video_parser.downloader_list]
+                video_info_showed = "以下视频将会被下载，请确认：\n" + "\n".join(video_info_list)
+                choice = QMessageBox.question(self, "是否开始下载?", video_info_showed)
+                if choice == QMessageBox.Yes:
+                    task = Thread(target=download_func, args=[self])
+                    task.start()
+                self.ui_tool_kit.initialize_status()
+            except Exception as e:
+                from traceback import print_exc
+                print_exc()
+                QMessageBox.critical(self, "出错了", "\n".join(e.args))
     # endregion
 
 
@@ -184,3 +211,5 @@ if __name__ == '__main__':
     window.show()
 
     app.exec_()
+# https://www.bilibili.com/video/BV13o4y1U7hR
+# http://www.byhy.net/tut/py/gui/qt_08/#%E5%AD%90%E7%BA%BF%E7%A8%8B%E5%8F%91%E4%BF%A1%E5%8F%B7%E6%9B%B4%E6%96%B0%E7%95%8C%E9%9D%A2
