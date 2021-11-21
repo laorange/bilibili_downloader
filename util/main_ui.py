@@ -182,18 +182,18 @@ class Ui_bilibili_downloader(object):
 
         self.gridLayout.addWidget(self.label_9, 1, 0, 1, 1)
 
-        self.allProgressBar = QProgressBar(self.centralwidget)
-        self.allProgressBar.setObjectName(u"allProgressBar")
-        self.allProgressBar.setMaximum(100)
-        self.allProgressBar.setValue(0)
+        self.all_progress_bar = QProgressBar(self.centralwidget)
+        self.all_progress_bar.setObjectName(u"all_progress_bar")
+        self.all_progress_bar.setMaximum(100)
+        self.all_progress_bar.setValue(0)
 
-        self.gridLayout.addWidget(self.allProgressBar, 1, 1, 1, 1)
+        self.gridLayout.addWidget(self.all_progress_bar, 1, 1, 1, 1)
 
-        self.progressBar = QProgressBar(self.centralwidget)
-        self.progressBar.setObjectName(u"progressBar")
-        self.progressBar.setValue(0)
+        self.progress_bar = QProgressBar(self.centralwidget)
+        self.progress_bar.setObjectName(u"progress_bar")
+        self.progress_bar.setValue(0)
 
-        self.gridLayout.addWidget(self.progressBar, 0, 1, 1, 1)
+        self.gridLayout.addWidget(self.progress_bar, 0, 1, 1, 1)
 
         self.label_8 = QLabel(self.centralwidget)
         self.label_8.setObjectName(u"label_8")

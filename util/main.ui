@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>static/ico.png</normaloff>static/ico.png</iconset>
+    <normaloff>../static/ico.png</normaloff>../static/ico.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="1,3,1">
@@ -108,7 +108,7 @@
            <string/>
           </property>
           <property name="pixmap">
-           <pixmap>static/bilibili_logo.png</pixmap>
+           <pixmap>../static/bilibili_logo.png</pixmap>
           </property>
           <property name="scaledContents">
            <bool>true</bool>
@@ -306,7 +306,7 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QProgressBar" name="allProgressBar">
+           <widget class="QProgressBar" name="all_progress_bar">
             <property name="maximum">
              <number>100</number>
             </property>
@@ -316,7 +316,7 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QProgressBar" name="progressBar">
+           <widget class="QProgressBar" name="progress_bar">
             <property name="value">
              <number>0</number>
             </property>
