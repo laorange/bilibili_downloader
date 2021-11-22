@@ -148,12 +148,17 @@ class MainWindow(QMainWindow):
 
     def download_button_clicked_event(self):
         def download_func(_self):
-            _self.ui_tool_kit.set_download_button_text("下载中")
-            video_handler.start_download()
-            open_choice = QMessageBox.question(_self, "完成", "下载完成！是否打开视频所在文件夹？")
-            if open_choice == QMessageBox.Yes:
-                _self.open_window_of_a_dir(video_handler.video_parser.downloader_list[0].local_path)
-            ui_tool_kit.initialize_status()
+            try:
+                _self.ui_tool_kit.set_download_button_text("下载中")
+                video_handler.start_download()
+                open_choice = QMessageBox.question(_self, "完成", "下载完成！是否打开视频所在文件夹？")
+                if open_choice == QMessageBox.Yes:
+                    _self.open_window_of_a_dir(video_handler.video_parser.downloader_list[0].local_path)
+                ui_tool_kit.initialize_status()
+            except Exception as e:
+                from traceback import print_exc
+                print_exc()
+                QMessageBox.critical(self, "出错了", str(e))
 
         url = self.ui.url.text()
         if not url.strip():
@@ -162,7 +167,7 @@ class MainWindow(QMainWindow):
             try:
                 self.ui_tool_kit.disable_download_button()
                 self.ui_tool_kit.set_download_button_text("解析中")
-                video_handler = VideoHandler(url, self.get_video_quality(), self.SAVE_PATH)
+                video_handler = VideoHandler(url, self.get_video_quality(), self.video_format, self.SAVE_PATH)
                 video_info_list = [f"{downloader.title}-{downloader.page.part}" for downloader in video_handler.video_parser.downloader_list]
                 video_info_showed = "以下视频将会被下载，请确认：\n" + "\n".join(video_info_list)
                 choice = QMessageBox.question(self, "是否开始下载?", video_info_showed)
@@ -173,7 +178,8 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 from traceback import print_exc
                 print_exc()
-                QMessageBox.critical(self, "出错了", "\n".join(e.args))
+                # QMessageBox.critical(self, "出错了", "\n".join(e.args))
+                QMessageBox.critical(self, "出错了", str(e))
     # endregion
 
 

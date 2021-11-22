@@ -6,12 +6,13 @@ from .my_classes import ui_tool_kit
 
 
 class VideoHandler:
-    def __init__(self, url, quality: Union[str, int], save_path: Path):
+    def __init__(self, url, quality: Union[str, int], video_format: str, save_path: Path):
         if not url:
             raise Exception("视频地址无效！请重新输入")
         self.url = url
         # quality: (1080p:80;720p:64;480p:32;360p:16)(填写80或64或32或16)
         self.quality = quality
+        self.video_format = video_format
         self.save_path = save_path
         self.ui_tool_kit = ui_tool_kit
         self.video_parser = self.get_proper_video_parser()
@@ -25,7 +26,9 @@ class VideoHandler:
     def start_download(self):
         async_tasks = []
         for _index, downloader in enumerate(self.video_parser.downloader_list):
-            async_tasks.append(downloader.download(self.save_path, (_index + 1) / len(self.video_parser.downloader_list) * 100))
+            async_tasks.append(downloader.download(self.save_path,
+                                                   self.video_format,
+                                                   (_index + 1) / len(self.video_parser.downloader_list) * 100))
         new_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(new_loop)
         loop = asyncio.get_event_loop()

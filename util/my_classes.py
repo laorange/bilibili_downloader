@@ -114,12 +114,12 @@ class VideoDownloader:
         self.final_url_list = target_url_list
         self.local_path = Path(__file__)  # 随便设个值
 
-    async def download(self, save_path: Path, all_progress_value: Union[int, float]):
+    async def download(self, save_path: Path, video_format: str = ".flv", all_progress_value: Union[int, float] = 0):
         self.local_path = Util.ensure_dir_exists(save_path / self.title)
         for url_container in self.final_url_list:
             size_record = 0
             async_downloader = httpx.AsyncClient(headers=MyConfig.download_base_headers)
-            with open(self.local_path / (self.page.part + ".mp4"), 'wb') as f:
+            with open(self.local_path / (self.page.part + video_format), 'wb') as f:
                 async with async_downloader.stream('GET', url_container.url) as response:
                     async for chunk in response.aiter_bytes():
                         size_record += len(chunk)
