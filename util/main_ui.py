@@ -137,7 +137,6 @@ class Ui_bilibili_downloader(object):
 
         self.video_format = QComboBox(self.centralwidget)
         self.video_format.addItem("")
-        self.video_format.addItem("")
         self.video_format.setObjectName(u"video_format")
 
         self.horizontalLayout_3.addWidget(self.video_format)
@@ -305,7 +304,6 @@ class Ui_bilibili_downloader(object):
         self.save_path.setText(QCoreApplication.translate("bilibili_downloader", u"-----", None))
         self.label_7.setText(QCoreApplication.translate("bilibili_downloader", u"\u6587\u4ef6\u683c\u5f0f\uff1a", None))
         self.video_format.setItemText(0, QCoreApplication.translate("bilibili_downloader", u".flv", None))
-        self.video_format.setItemText(1, QCoreApplication.translate("bilibili_downloader", u".mp4", None))
 
         self.label_11.setText(QCoreApplication.translate("bilibili_downloader", u"\u89c6\u9891\u753b\u8d28\uff1a", None))
         self.video_quality.setItemText(0, QCoreApplication.translate("bilibili_downloader", u"360P", None))

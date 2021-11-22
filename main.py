@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import sys
+import time
 from pathlib import Path
 from typing import List
 from threading import Thread
@@ -38,7 +39,7 @@ class MainWindow(QMainWindow):
         self.video_quality: str = self.config[3]
         self.ui.video_quality.setCurrentIndex(self.quality_choices.index(self.video_quality))
         self.ui.save_path.setText(str(self.SAVE_PATH))
-        self.ui_tool_kit = ui_tool_kit
+        # self.ui_tool_kit = ui_tool_kit
         # endregion
 
         # region 绑定主窗口-槽事件
@@ -57,6 +58,11 @@ class MainWindow(QMainWindow):
         my_signal.set_speed.connect(self.set_speed)
         my_signal.set_progress_bar.connect(self.set_progress_bar)
         my_signal.set_all_progress_bar.connect(self.set_all_progress_bar)
+        my_signal.set_url_box.connect(self.set_url_box)
+        my_signal.output_message_about.connect(self.set_all_progress_bar)
+        my_signal.output_message_warning.connect(self.set_all_progress_bar)
+        # my_signal.output_message_question.connect(self.output_message_question)
+        my_signal.output_message_critical.connect(self.output_message_critical)
         # endregion
         # endregion
 
@@ -97,7 +103,7 @@ class MainWindow(QMainWindow):
                 dir_path = BASE_DIR
             os.startfile(dir_path)
         else:
-            QMessageBox.warning(self, "很抱歉", "该功能仅支持在Windows上使用")
+            QMessageBox.warning(self, "很抱歉", "打开指定文件夹的功能仅支持在Windows上使用")
 
     def quit(self):
         choice = QMessageBox.question(self, "即将退出程序", "确认退出程序？")
@@ -146,40 +152,64 @@ class MainWindow(QMainWindow):
     def set_all_progress_bar(self, all_progress_value: int):
         self.ui.all_progress_bar.setValue(all_progress_value)
 
+    def set_url_box(self, url_text: str):
+        self.ui.url.setText(url_text)
+
+    def output_message_about(self, title, text):
+        QMessageBox.about(self, title, text)
+
+    # def output_message_question(self, title, text):  # 用信号传确认框的结果貌似不行？
+    #     choice = QMessageBox.question(self, title, text)
+    #     if choice == QMessageBox.Yes:
+    #         return True
+    #     return False
+
+    def output_message_warning(self, title, text):
+        return QMessageBox.warning(self, title, text)
+
+    def output_message_critical(self, title, text):
+        return QMessageBox.critical(self, title, text)
+
     def download_button_clicked_event(self):
-        def download_func(_self):
+        def download_func():
             try:
-                _self.ui_tool_kit.set_download_button_text("下载中")
+                ui_tool_kit.set_download_button_text("下载中")
+                ui_tool_kit.disable_download_button()
                 video_handler.start_download()
-                open_choice = QMessageBox.question(_self, "完成", "下载完成！是否打开视频所在文件夹？")
-                if open_choice == QMessageBox.Yes:
-                    _self.open_window_of_a_dir(video_handler.video_parser.downloader_list[0].local_path)
-                ui_tool_kit.initialize_status()
-            except Exception as e:
+                ui_tool_kit.about("完成", "下载完成！")
+                time.sleep(1)
+                self.open_window_of_a_dir(video_handler.video_parser.downloader_list[0].local_path)
+            except Exception as _e:
                 from traceback import print_exc
                 print_exc()
-                QMessageBox.critical(self, "出错了", str(e))
+                ui_tool_kit.critical("出错了", str(_e))
+            finally:
+                ui_tool_kit.initialize_status()
 
         url = self.ui.url.text()
         if not url.strip():
-            QMessageBox.critical(self, "没有检测到输入!", "请在输入链接后再点击下载")
+            ui_tool_kit.critical("没有检测到输入!", "请在输入链接后再点击下载")
+            ui_tool_kit.initialize_status()
         else:
             try:
-                self.ui_tool_kit.disable_download_button()
-                self.ui_tool_kit.set_download_button_text("解析中")
+                ui_tool_kit.set_download_button_text("解析中")
+                ui_tool_kit.disable_download_button()
                 video_handler = VideoHandler(url, self.get_video_quality(), self.video_format, self.SAVE_PATH)
                 video_info_list = [f"{downloader.title}-{downloader.page.part}" for downloader in video_handler.video_parser.downloader_list]
                 video_info_showed = "以下视频将会被下载，请确认：\n" + "\n".join(video_info_list)
                 choice = QMessageBox.question(self, "是否开始下载?", video_info_showed)
                 if choice == QMessageBox.Yes:
-                    task = Thread(target=download_func, args=[self])
+                    task = Thread(target=download_func)
                     task.start()
-                self.ui_tool_kit.initialize_status()
+                else:
+                    ui_tool_kit.initialize_status()
             except Exception as e:
                 from traceback import print_exc
                 print_exc()
                 # QMessageBox.critical(self, "出错了", "\n".join(e.args))
-                QMessageBox.critical(self, "出错了", str(e))
+                ui_tool_kit.critical("出错了", str(e))
+                ui_tool_kit.initialize_status()
+
     # endregion
 
 
@@ -217,5 +247,7 @@ if __name__ == '__main__':
     window.show()
 
     app.exec_()
-# https://www.bilibili.com/video/BV13o4y1U7hR
+# 多p  https://www.bilibili.com/video/BV1j64y1s7Qp
+# 2p测试 https://www.bilibili.com/video/BV1ti4y1K7uw?spm_id_from=333.999.0.0
+# 单p  https://www.bilibili.com/video/BV13o4y1U7hR
 # http://www.byhy.net/tut/py/gui/qt_08/#%E5%AD%90%E7%BA%BF%E7%A8%8B%E5%8F%91%E4%BF%A1%E5%8F%B7%E6%9B%B4%E6%96%B0%E7%95%8C%E9%9D%A2

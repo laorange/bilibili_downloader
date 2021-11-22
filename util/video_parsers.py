@@ -15,6 +15,18 @@ class VideoParserInterface(abc.ABC):
         self.downloader_list = self.get_downloader_list()
 
     def set_title(self, title: str):
+        # fix: windows文件夹的名字中不能包含 \/:*?"<>|
+        replace_table: dict = {"\\": "_",
+                               "/": "_",
+                               ":": "：",
+                               "*": "x",
+                               "?": "？",
+                               '"': "'",
+                               "<": "(",
+                               ">": ")",
+                               "|": "丨"}
+        for forbidden_char, replace_char in replace_table.items():
+            title = title.replace(forbidden_char, replace_char)
         self.title = title
 
     @abc.abstractmethod

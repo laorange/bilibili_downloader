@@ -2,7 +2,7 @@ import asyncio
 from pathlib import Path
 
 from .video_parsers import *
-from .my_classes import ui_tool_kit
+# from .my_classes import ui_tool_kit
 
 
 class VideoHandler:
@@ -14,7 +14,6 @@ class VideoHandler:
         self.quality = quality
         self.video_format = video_format
         self.save_path = save_path
-        self.ui_tool_kit = ui_tool_kit
         self.video_parser = self.get_proper_video_parser()
 
     def get_proper_video_parser(self) -> VideoParserInterface:
@@ -34,8 +33,6 @@ class VideoHandler:
         loop = asyncio.get_event_loop()
         loop.run_until_complete(asyncio.wait(async_tasks))
         loop.close()
-        # for task in async_tasks:
-        #     asyncio.run(task)
 
 
 if __name__ == '__main__':

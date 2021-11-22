@@ -4,7 +4,6 @@ from .common_util import Util
 from pathlib import Path
 import httpx
 import asyncio
-# from .main_ui import Ui_bilibili_downloader
 from .signals import my_signal
 
 
@@ -59,9 +58,22 @@ class UiToolKit:
     def set_all_progress_bar(all_progress_value: int):
         my_signal.set_all_progress_bar.emit(all_progress_value)
 
-    # todo: 新增question、about、critical
-    def question_about_critical(self):
-        pass
+    @staticmethod
+    def set_url_box(text: str = ""):
+        my_signal.set_url_box.emit(text)
+
+    # todo: 新增about、critical
+    @staticmethod
+    def about(title: str, text):
+        my_signal.output_message_about.emit(title, text)
+
+    @staticmethod
+    def warning(title: str, text):
+        my_signal.output_message_warning.emit(title, text)
+
+    @staticmethod
+    def critical(title: str, text):
+        my_signal.output_message_critical.emit(title, text)
 
     def update_status_on_ui(self, progress_value: int, all_progress_value: int):
         if (interval_time := (time.time() - self.recorded_time)) > MyConfig.UI_REFRESH_INTERVAL:
@@ -77,6 +89,7 @@ class UiToolKit:
         self.set_progress_bar(0)
         self.set_all_progress_bar(0)
         self.enable_download_button()
+        self.set_url_box()
         self.set_download_button_text("下载")
 
 
@@ -112,7 +125,7 @@ class VideoDownloader:
         self.title = title
         self.page = page
         self.final_url_list = target_url_list
-        self.local_path = Path(__file__)  # 随便设个值
+        self.local_path = Path(__file__)  # 这里是随便设个值，反正后面要改
 
     async def download(self, save_path: Path, video_format: str = ".flv", all_progress_value: Union[int, float] = 0):
         self.local_path = Util.ensure_dir_exists(save_path / self.title)

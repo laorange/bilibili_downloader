@@ -2,25 +2,7 @@ import time
 from PySide2.QtCore import Signal, QObject
 
 
-# class UiToolKit:
-#
-    # def enable_download_button(self):
-    #     self.ui.download_button.setEnabled(True)
-    #
-    # def disable_download_button(self):
-    #     self.ui.download_button.setEnabled(False)
-    #
-    # def set_download_button_text(self, text):
-    #     self.ui.download_button.setText(text)
-    #
-    # def set_speed(self, speed_text: str):
-    #     self.ui.speed.setText()
-    #
-    # def set_progress_bar(self, progress_value: int):
-    #     self.ui.progress_bar.setValue(progress_value)
-    #
-    # def set_all_progress_bar(self, all_progress_value: int):
-    #     self.ui.all_progress_bar.setValue(all_progress_value)
+# from PySide2.QtWidgets import QWidget
 
 
 class MySignal(QObject):
@@ -30,6 +12,12 @@ class MySignal(QObject):
     set_speed = Signal(str)
     set_progress_bar = Signal(int)
     set_all_progress_bar = Signal(int)
+    set_url_box = Signal(str)
+
+    output_message_about = Signal(str, str)
+    output_message_warning = Signal(str, str)
+    # output_message_question = Signal(str, str)
+    output_message_critical = Signal(str, str)
 
     def __init__(self):
         super(MySignal, self).__init__()
