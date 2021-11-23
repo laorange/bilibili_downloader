@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import sys
+import time
 from pathlib import Path
 from typing import List
 from threading import Thread
@@ -103,7 +104,8 @@ class MainWindow(QMainWindow):
     def write_log(self, log_info: str):
         with CursorDecorator(self.db) as c:
             # c.execute("create table Log (id INTEGER PRIMARY KEY AUTOINCREMENT, datetime char(20), info text)")
-            c.execute(f"insert into Log (datetime, info) VALUES ('{Util.get_datetime_str_now()}', '{log_info}')")
+            sql = f"insert into Log (datetime, info) VALUES ('{Util.get_datetime_str_now()}', '{log_info}')"
+            c.execute(sql)
 
     # region Action-事件
     def open_window_of_a_dir(self, dir_path: Path = None):
@@ -144,7 +146,7 @@ class MainWindow(QMainWindow):
     def change_save_path_event(self):
         file_dialog = QFileDialog(self)
         if new_save_path := file_dialog.getExistingDirectory(self, "请选择用于保存下载的视频的文件夹"):
-            self.SAVE_PATH = new_save_path
+            self.SAVE_PATH = Path(new_save_path)
             self.ui.save_path.setText(new_save_path)
             with CursorDecorator(self.db) as c:
                 c.execute(f"update MyConfig set save_path='{new_save_path}' where true;")
@@ -192,8 +194,9 @@ class MainWindow(QMainWindow):
     def download_button_clicked_event(self):
         def download_func():
             try:
-                ui_tool_kit.set_download_button_text("下载中")
-                ui_tool_kit.disable_download_button()
+                ui_tool_kit.revive_the_download_progress()
+                ui_tool_kit.enable_download_button()
+                ui_tool_kit.set_download_button_text("取消下载")
                 video_handler.start_download()
                 ui_tool_kit.about("完成", "下载完成！")
                 self.open_window_of_a_dir(video_handler.video_parser.downloader_list[0].local_path)
@@ -206,7 +209,13 @@ class MainWindow(QMainWindow):
                 ui_tool_kit.initialize_status()
 
         url = self.ui.url.text()
-        if not url.strip():
+        if "取消" in self.ui.download_button.text():
+            ui_tool_kit.kill_the_download_progress()
+            time.sleep(1)
+            QMessageBox.warning(self, "警告", "已强行终止下载任务")
+            ui_tool_kit.initialize_status()
+
+        elif not url.strip():
             ui_tool_kit.critical("没有检测到输入!", "请在输入链接后再点击下载")
             ui_tool_kit.initialize_status()
         else:
@@ -231,11 +240,18 @@ class MainWindow(QMainWindow):
                 from traceback import print_exc
                 print_exc()
                 # QMessageBox.critical(self, "出错了", "\n".join(e.args))
-                self.write_log(str(e))
+                self.write_log(str(e) + f"[{url}]")
                 QMessageBox.critical(self, "出错了", str(e))
                 ui_tool_kit.initialize_status()
 
     # endregion
+
+    def closeEvent(self, event):
+        choice = QMessageBox.question(self, "朴实无华的确认框", "真的要退出程序吗？")
+        if choice == QMessageBox.Yes:
+            print("拜拜了您嘞！")
+            ui_tool_kit.kill_the_download_progress()
+            sys.exit(app.exec_())
 
 
 class LogWindow(QWidget):

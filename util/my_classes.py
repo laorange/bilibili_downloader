@@ -29,6 +29,7 @@ class UiToolKit:
     def __init__(self):
         self.recorded_time = time.time()
         self.recorded_size = 0
+        self.block = False
 
     def update_record_time(self):
         self.recorded_time = time.time()
@@ -79,6 +80,12 @@ class UiToolKit:
     def write_log(log_text):
         my_signal.write_log.emit(log_text)
 
+    def kill_the_download_progress(self):
+        self.block = True
+
+    def revive_the_download_progress(self):
+        self.block = False
+
     def update_status_on_ui(self, progress_value: int, all_progress_value: int):
         if (interval_time := (time.time() - self.recorded_time)) > MyConfig.UI_REFRESH_INTERVAL:
             speed = int(self.recorded_size / interval_time)
@@ -95,6 +102,7 @@ class UiToolKit:
         self.enable_download_button()
         self.set_url_box()
         self.set_download_button_text("下载")
+        self.revive_the_download_progress()
 
 
 ui_tool_kit = UiToolKit()
@@ -148,27 +156,35 @@ class VideoDownloader:
 
     async def download(self, save_path: Path, video_format: str = ".flv",
                        all_progress_value: Union[int, float] = 0, headers: dict = None):
-        if headers is None:
-            headers = MyConfig.download_base_headers
-        self.local_path = Util.ensure_dir_exists(save_path / self.title)
+        try:
+            if headers is None:
+                headers = MyConfig.download_base_headers
+            self.local_path = Util.ensure_dir_exists(save_path / self.title)
 
-        for _index, url in enumerate(self.page.get_url()):
-            if len(self.page.get_url()) > 1:
-                video_name: str = self.page.part + f"_{_index}" + video_format
-            else:
-                video_name: str = self.page.part + video_format
+            for _index, url in enumerate(self.page.get_url()):
+                if len(self.page.get_url()) > 1:
+                    video_name: str = self.page.part + f"_{_index}" + video_format
+                else:
+                    video_name: str = self.page.part + video_format
 
-            ui_tool_kit.write_log(f"开始下载：{self.title}-{self.page.part}")
+                ui_tool_kit.write_log(f"开始下载：{self.title}-{self.page.part}")
 
-            size_record = 0
-            async_downloader = httpx.AsyncClient(headers=headers)
-            with open(self.local_path / video_name, 'wb') as f:
-                async with async_downloader.stream('GET', url) as response:
-                    async for chunk in response.aiter_bytes():
-                        size_record += len(chunk)
-                        progress = int(size_record / self.page.get_size()[_index] * 100)
-                        ui_tool_kit.recorded_size += len(chunk)
-                        ui_tool_kit.update_status_on_ui(progress, all_progress_value)
-                        f.write(chunk)
+                size_record = 0
+                async_downloader = httpx.AsyncClient(headers=headers)
+                with open(self.local_path / video_name, 'wb') as f:
+                    async with async_downloader.stream('GET', url) as response:
+                        async for chunk in response.aiter_bytes():
+                            if ui_tool_kit.block:
+                                raise KeyboardInterrupt
+                            size_record += len(chunk)
+                            progress = int(size_record / self.page.get_size()[_index] * 100)
+                            ui_tool_kit.recorded_size += len(chunk)
+                            ui_tool_kit.update_status_on_ui(progress, all_progress_value)
+                            f.write(chunk)
 
-                    ui_tool_kit.write_log(f"下载完成：{self.title}-{self.page.part}")
+                        ui_tool_kit.write_log(f"下载完成：{self.title}-{self.page.part}")
+        except KeyboardInterrupt:
+            ui_tool_kit.write_log("强行终止下载任务")
+            return
+        except Exception as e:
+            ui_tool_kit.write_log(str(e))
