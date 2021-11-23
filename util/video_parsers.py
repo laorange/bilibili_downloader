@@ -47,9 +47,9 @@ class NormalVideoParser(VideoParserInterface):
         html = httpx.get(start_url, headers=MyConfig.base_headers).json()
         data: dict = html['data']
         self.set_title(data.get("title", "视频标题（更新失败）"))
-        if '?p=' in start_url:
+        if search_p_result := re.search(r'\?p=(\d+)', self.url):
             # 单独下载分P视频中的一集
-            p = re.search(r'\?p=(\d+)', start_url).group(1)
+            p = search_p_result.group(1)
             return [PageInAPI(data['pages'][int(p) - 1])]
         else:
             # 如果p不存在就是全集下载

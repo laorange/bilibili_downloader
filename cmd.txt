@@ -3,3 +3,10 @@ d:
 cd D:\programming\py\gui\bilibili_downloader\util
 pyside2-uic ..\main.ui -o main_ui.py
 pyside2-uic ..\log.ui -o log_ui.py
+
+
+
+
+
+
+pyinstaller -Fw main.py -i static/ico.ico

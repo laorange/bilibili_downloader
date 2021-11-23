@@ -1,5 +1,7 @@
 # Bilibili_downloader
 
+项目地址：https://github.com/laorange/bilibili_downloader/
+
 ## [特点]
 
 1. 使用了`pyside2`构建ui
@@ -17,6 +19,8 @@
 
 1. 在电脑浏览器上找到想要下载的b站视频，复制网页链接
 2. “视频链接”后的文本输入框内粘贴该链接
+   + 下载**单集视频**或者**多集视频**的全部：直接传入B站视频链接，例：https://www.bilibili.com/video/BV11K411376D
+   + 下载其中一集:传入那一集的链接 (网址中会包含 `?p=`)，例：https://www.bilibili.com/video/BV11K411376D?p=8
 3. 点击“下载”按钮
 
 ## [截图]
@@ -104,9 +108,11 @@ class PageInAPI:
 
 ## [参考]
 
-下载视频的接口是参考了 [Henry](https://github.com/Henryhaohao/) 的相关项目：[`Henryhaohao/Bilibili_video_download`](https://github.com/Henryhaohao/Bilibili_video_download)
++ 下载视频的接口是参考了 [Henry](https://github.com/Henryhaohao/) 的相关项目：[`Henryhaohao/Bilibili_video_download`](https://github.com/Henryhaohao/Bilibili_video_download)
 
 ## [其他]
 
++ 当前使用的视频解析器是不需要用户自行更新cookies的加密版本，**这是以牺牲下载速度换来的便利**。
 + ui中的“主进度”其实是正在下载的文件的序号占下载任务总数的百分比，因此由于协程下载的特性，会在各个文件反复横跳，因此“主进度”仅用于提升观赏效果。
++ 正因如此，本程序下载多集视频的效率远高于下载单集视频。
 
