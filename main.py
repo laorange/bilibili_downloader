@@ -210,10 +210,12 @@ class MainWindow(QMainWindow):
 
         url = self.ui.url.text()
         if "取消" in self.ui.download_button.text():
-            ui_tool_kit.kill_the_download_progress()
-            time.sleep(1)
-            QMessageBox.warning(self, "警告", "已强行终止下载任务")
-            ui_tool_kit.initialize_status()
+            choice = QMessageBox.question(self, "平平无奇的确认框", "是否要强行终止下载任务？\n注：已下载的部分并不会被删除")
+            if choice == QMessageBox.Yes:
+                ui_tool_kit.kill_the_download_progress()
+                time.sleep(1)
+                QMessageBox.warning(self, "警告", "已强行终止下载任务")
+                ui_tool_kit.initialize_status()
 
         elif not url.strip():
             ui_tool_kit.critical("没有检测到输入!", "请在输入链接后再点击下载")

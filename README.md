@@ -106,6 +106,12 @@ class PageInAPI:
 1. 自定义`视频分析器`(继承自`VideoParserInterface`)，并重写`get_downloader_list`方法，使其能返回`List[VideoDownloader]`
 2. 更改`VideoHandler.get_proper_video_parser`中的逻辑，使其在指定条件下返回新的`视频分析器`。
 
+## [近期修复的bug]
+
+- [x] 包含 `?p=`的链接解析错误
+- [x] 在下载期间退出窗口，子线程仍在后台下载 或 主线程卡死无法退出
+- [x] 变更保存路径后，需要重启才能恢复，否则会报错
+
 ## [参考]
 
 + 下载视频的接口是参考了 [Henry](https://github.com/Henryhaohao/) 的相关项目：[`Henryhaohao/Bilibili_video_download`](https://github.com/Henryhaohao/Bilibili_video_download)
