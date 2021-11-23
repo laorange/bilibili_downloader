@@ -312,8 +312,8 @@ class Ui_bilibili_downloader(object):
         self.video_quality.setItemText(3, QCoreApplication.translate("bilibili_downloader", u"1080P", None))
         self.video_quality.setItemText(4, QCoreApplication.translate("bilibili_downloader", u"1080P+", None))
 
-        self.label_9.setText(QCoreApplication.translate("bilibili_downloader", u"\u8fdb\u5ea6", None))
-        self.label_8.setText(QCoreApplication.translate("bilibili_downloader", u"\u603b\u8fdb\u5ea6", None))
+        self.label_9.setText(QCoreApplication.translate("bilibili_downloader", u"\u603b\u8fdb\u5ea6", None))
+        self.label_8.setText(QCoreApplication.translate("bilibili_downloader", u"\u8fdb\u5ea6", None))
         self.label_10.setText(QCoreApplication.translate("bilibili_downloader", u"\u4e0b\u8f7d\u901f\u5ea6", None))
         self.speed.setText(QCoreApplication.translate("bilibili_downloader", u"----", None))
         self.download_button.setText(QCoreApplication.translate("bilibili_downloader", u"\u4e0b\u8f7d", None))

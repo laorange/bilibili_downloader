@@ -1,12 +1,10 @@
 import os
 import sqlite3
 import sys
-import time
 from pathlib import Path
 from typing import List
 from threading import Thread
 
-# import PySide2
 from PySide2.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFileDialog
 
 from util.main_ui import Ui_bilibili_downloader
@@ -16,9 +14,13 @@ from util.my_classes import ui_tool_kit
 from util.video_handler import VideoHandler
 from util.signals import my_signal
 
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(os.path.realpath(sys.argv[0])).resolve().parent
 
 __version__ = "1.0.0"
+
+if sys.version_info.major + 0.1 * sys.version_info.minor < 3.8:
+    input("您的python版本过低，请使用3.8及以上版本，或改写全部的海象运算符( := )")
+    raise EnvironmentError
 
 
 class MainWindow(QMainWindow):
@@ -26,6 +28,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         self.ui = Ui_bilibili_downloader()
         self.ui.setupUi(self)
+        self.setWindowTitle(f"Bilibili-视频下载工具 v{__version__}")
 
         self.db_name: str = "database.sqlite3"
         self.quality_choices: List[str] = ["16", "32", "64", "80", "112"]
@@ -41,7 +44,6 @@ class MainWindow(QMainWindow):
         self.video_quality: str = self.config[3]
         self.ui.video_quality.setCurrentIndex(self.quality_choices.index(self.video_quality))
         self.ui.save_path.setText(str(self.SAVE_PATH))
-        # self.ui_tool_kit = ui_tool_kit
         # endregion
 
         # region 绑定主窗口-槽事件
@@ -49,6 +51,7 @@ class MainWindow(QMainWindow):
         self.ui.quit.triggered.connect(self.quit)
         self.ui.read_log.triggered.connect(self.read_log)
         self.ui.about_this.triggered.connect(self.about_tis)
+        self.ui.help_text.triggered.connect(self.help_text)
 
         self.ui.change_save_path.clicked.connect(self.change_save_path_event)
         self.ui.video_format.currentIndexChanged.connect(self.video_format_change_event)
@@ -63,10 +66,10 @@ class MainWindow(QMainWindow):
         my_signal.set_progress_bar.connect(self.set_progress_bar)
         my_signal.set_all_progress_bar.connect(self.set_all_progress_bar)
         my_signal.set_url_box.connect(self.set_url_box)
-        my_signal.output_message_about.connect(self.set_all_progress_bar)
-        my_signal.output_message_warning.connect(self.set_all_progress_bar)
-        # my_signal.output_message_question.connect(self.output_message_question)
+        my_signal.output_message_about.connect(self.output_message_about)
+        my_signal.output_message_warning.connect(self.output_message_warning)
         my_signal.output_message_critical.connect(self.output_message_critical)
+        my_signal.write_log.connect(self.write_log)
         # endregion
         # endregion
 
@@ -97,8 +100,10 @@ class MainWindow(QMainWindow):
                 c.execute(f"insert into Cookies (datetime, SESSDATA) VALUES ('{Util.get_datetime_str_now()}', '75a75cf2%2C1564669876%2Cb7c7b171')")
         return db
 
-    def show(self):
-        self.showMinimized()
+    def write_log(self, log_info: str):
+        with CursorDecorator(self.db) as c:
+            # c.execute("create table Log (id INTEGER PRIMARY KEY AUTOINCREMENT, datetime char(20), info text)")
+            c.execute(f"insert into Log (datetime, info) VALUES ('{Util.get_datetime_str_now()}', '{log_info}')")
 
     # region Action-事件
     def open_window_of_a_dir(self, dir_path: Path = None):
@@ -115,11 +120,23 @@ class MainWindow(QMainWindow):
             self.close()
 
     def read_log(self):
-        self.log_window.show()
+        self.log_window.showMaximized()
 
     def about_tis(self):
         QMessageBox.about(self, "关于本程序", f"本项目仅用于学习交流，请勿用于任何商业用途！\n"
                                          f"项目地址：https://github.com/laorange/bilibili_downloader/\n版本号：{__version__}")
+
+    def help_text(self):
+        help_text_path = BASE_DIR / 'README.pdf'
+        if sys.platform.startswith('win'):
+            if help_text_path.exists():
+                os.startfile(help_text_path)
+            elif (markdown_path := (BASE_DIR / "README.md")).exists():
+                os.startfile(markdown_path)
+            else:
+                QMessageBox.warning(self, "警告", "未找到帮助文档，文档疑似被误删")
+        else:
+            QMessageBox.about(self, "提示", f"帮助文档路径：{str(help_text_path)}")
 
     # endregion
 
@@ -158,19 +175,13 @@ class MainWindow(QMainWindow):
         self.ui.progress_bar.setValue(progress_value)
 
     def set_all_progress_bar(self, all_progress_value: int):
-        self.ui.all_progress_bar.setValue(int(all_progress_value))
+        self.ui.all_progress_bar.setValue(all_progress_value)
 
     def set_url_box(self, url_text: str):
         self.ui.url.setText(url_text)
 
     def output_message_about(self, title, text):
         QMessageBox.about(self, title, text)
-
-    # def output_message_question(self, title, text):  # 用信号传确认框的结果貌似不行？
-    #     choice = QMessageBox.question(self, title, text)
-    #     if choice == QMessageBox.Yes:
-    #         return True
-    #     return False
 
     def output_message_warning(self, title, text):
         return QMessageBox.warning(self, title, text)
@@ -185,11 +196,11 @@ class MainWindow(QMainWindow):
                 ui_tool_kit.disable_download_button()
                 video_handler.start_download()
                 ui_tool_kit.about("完成", "下载完成！")
-                time.sleep(1)
                 self.open_window_of_a_dir(video_handler.video_parser.downloader_list[0].local_path)
             except Exception as _e:
                 from traceback import print_exc
                 print_exc()
+                self.write_log(str(_e))
                 ui_tool_kit.critical("出错了", str(_e))
             finally:
                 ui_tool_kit.initialize_status()
@@ -220,7 +231,8 @@ class MainWindow(QMainWindow):
                 from traceback import print_exc
                 print_exc()
                 # QMessageBox.critical(self, "出错了", "\n".join(e.args))
-                ui_tool_kit.critical("出错了", str(e))
+                self.write_log(str(e))
+                QMessageBox.critical(self, "出错了", str(e))
                 ui_tool_kit.initialize_status()
 
     # endregion
@@ -260,7 +272,7 @@ if __name__ == '__main__':
     window.show()
 
     app.exec_()
-# 多p  https://www.bilibili.com/video/BV1j64y1s7Qp
-# 2p测试 https://www.bilibili.com/video/BV1ti4y1K7uw?spm_id_from=333.999.0.0
-# 单p  https://www.bilibili.com/video/BV13o4y1U7hR
-# http://www.byhy.net/tut/py/gui/qt_08/#%E5%AD%90%E7%BA%BF%E7%A8%8B%E5%8F%91%E4%BF%A1%E5%8F%B7%E6%9B%B4%E6%96%B0%E7%95%8C%E9%9D%A2
+
+# 多p测试  https://www.bilibili.com/video/BV1j64y1s7Qp
+# 双p测试  https://www.bilibili.com/video/BV1ti4y1K7uw
+# 单p测试  https://www.bilibili.com/video/BV13o4y1U7hR

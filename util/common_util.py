@@ -16,7 +16,7 @@ class Util:
 
     @staticmethod
     def get_datetime_str_now():
-        return datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+        return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     @staticmethod
     def get_format_size(num_of_bytes: int) -> str:

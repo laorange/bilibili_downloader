@@ -293,7 +293,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="label_9">
             <property name="text">
-             <string>进度</string>
+             <string>总进度</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -320,7 +320,7 @@
           <item row="0" column="0">
            <widget class="QLabel" name="label_8">
             <property name="text">
-             <string>总进度</string>
+             <string>进度</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>

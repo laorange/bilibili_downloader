@@ -3,11 +3,11 @@ from typing import List, Union, Dict
 from .common_util import Util
 from pathlib import Path
 import httpx
-import asyncio
 from .signals import my_signal
 
 
 class MyConfig:
+    """项目的全局变量，哪里需要哪里调"""
     base_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'
     }
@@ -75,6 +75,10 @@ class UiToolKit:
     def critical(title: str, text):
         my_signal.output_message_critical.emit(title, text)
 
+    @staticmethod
+    def write_log(log_text):
+        my_signal.write_log.emit(log_text)
+
     def update_status_on_ui(self, progress_value: int, all_progress_value: int):
         if (interval_time := (time.time() - self.recorded_time)) > MyConfig.UI_REFRESH_INTERVAL:
             speed = int(self.recorded_size / interval_time)
@@ -137,12 +141,13 @@ class PageInAPI:
 
 
 class VideoDownloader:
-    def __init__(self, title, page: PageInAPI):  # , target_url_list: List[FinalUrlContainer]
+    def __init__(self, title, page: PageInAPI):
         self.title = title
         self.page = page
         self.local_path = Path(__file__)  # 这里是随便设个值，反正后面要改
 
-    async def download(self, save_path: Path, video_format: str = ".flv", all_progress_value: Union[int, float] = 0, headers: dict = None):
+    async def download(self, save_path: Path, video_format: str = ".flv",
+                       all_progress_value: Union[int, float] = 0, headers: dict = None):
         if headers is None:
             headers = MyConfig.download_base_headers
         self.local_path = Util.ensure_dir_exists(save_path / self.title)
@@ -152,6 +157,8 @@ class VideoDownloader:
                 video_name: str = self.page.part + f"_{_index}" + video_format
             else:
                 video_name: str = self.page.part + video_format
+
+            ui_tool_kit.write_log(f"开始下载：{self.title}-{self.page.part}")
 
             size_record = 0
             async_downloader = httpx.AsyncClient(headers=headers)
@@ -163,5 +170,5 @@ class VideoDownloader:
                         ui_tool_kit.recorded_size += len(chunk)
                         ui_tool_kit.update_status_on_ui(progress, all_progress_value)
                         f.write(chunk)
-        # await async_downloader.aclose()
-        # await asyncio.sleep(1)
+
+                    ui_tool_kit.write_log(f"下载完成：{self.title}-{self.page.part}")
