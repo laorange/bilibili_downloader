@@ -2,7 +2,7 @@ import abc
 import hashlib
 import re
 from typing import List, Union  # , Dict
-from .my_classes import MyConfig, PageInAPI, VideoDownloader, FinalUrlContainer
+from .my_classes import MyConfig, PageInAPI, VideoDownloader
 import httpx
 
 
@@ -11,8 +11,7 @@ class VideoParserInterface(abc.ABC):
         self.url = url
         self.quality = quality
         self.title: str = "视频标题（待更新）"
-        self.page_list: List[PageInAPI] = self.get_page_list()
-        self.downloader_list = self.get_downloader_list()
+        self.downloader_list: List[VideoDownloader] = self.get_downloader_list()
 
     def set_title(self, title: str):
         # fix: windows文件夹的名字中不能包含 \/:*?"<>|
@@ -28,10 +27,6 @@ class VideoParserInterface(abc.ABC):
         for forbidden_char, replace_char in replace_table.items():
             title = title.replace(forbidden_char, replace_char)
         self.title = title
-
-    @abc.abstractmethod
-    def get_page_list(self) -> List[PageInAPI]:
-        pass
 
     @abc.abstractmethod
     def get_downloader_list(self) -> List[VideoDownloader]:
@@ -62,13 +57,17 @@ class NormalVideoParser(VideoParserInterface):
 
     def get_downloader_list(self):
         downloader_list = []
-        for page in self.page_list:
+        page_list = self.get_page_list()
+        for page in page_list:
             encrypted_api: str = self.get_encrypted_api(page.c_id)
             html = httpx.get(encrypted_api, headers={
                 **MyConfig.base_headers,
                 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
             }).json()
-            downloader_list.append(VideoDownloader(self.title, page, [FinalUrlContainer(chunk['url'], int(chunk['size'])) for chunk in html['durl']]))
+            for chunk in html['durl']:
+                page.set_url(chunk['url'])
+                page.set_size(int(chunk['size']))
+            downloader_list.append(VideoDownloader(self.title, page))
         return downloader_list
 
     def get_encrypted_api(self, c_id) -> str:
@@ -85,8 +84,5 @@ class FanVideoParser(VideoParserInterface):
         super().__init__(url, quality)
         raise Exception("当前版本不支持下载番剧")
 
-    def get_page_list(self) -> List[PageInAPI]:
-        pass
-
-    def get_downloader_list(self):
+    def get_downloader_list(self) -> List[VideoDownloader]:
         pass

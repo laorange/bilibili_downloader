@@ -99,12 +99,13 @@ ui_tool_kit = UiToolKit()
 class PageInAPI:
     """用于记录api中的单个Page的信息。包含重要的cid"""
 
+    # title类似于电视剧剧名，page.part类似于每一集的集名
     def __init__(self, info_dict: Dict[str, Union[int, str]]):
         self.a_id = info_dict.get("aid", '')
         self.bv_id = info_dict.get("bvid", '')
         self.c_id = info_dict.get("cid", '')
         self.page: str = str(info_dict.get("page", '0'))
-        self.part = info_dict.get("part", '')
+        self.part = info_dict.get("part", '视频名')
         self.duration = info_dict.get("duration", '')
         self.vid = info_dict.get("vid", '')
         self.weblink = info_dict.get("weblink", '')
@@ -113,32 +114,54 @@ class PageInAPI:
         self._from = info_dict.get("from", '')
         self._info_dict = info_dict
 
+        self.url: List[str] = []
+        self.size: List[int] = []
 
-class FinalUrlContainer:
-    def __init__(self, url, size: int = 1):
-        self.url = url
-        self.size = size
+    def set_url(self, url: str):
+        self.url.append(url)
+
+    def set_size(self, size: int = 1):
+        self.size.append(size)
+
+    def get_url(self) -> List[str]:
+        if not self.url:
+            raise Exception("该Page的url未被设置，请使用.set_url方法设置")
+        return self.url
+
+    def get_size(self) -> List[int]:
+        if not self.size:
+            raise Warning("该Page的size未被设置，请使用.set_size方法设置")
+        if len(self.size) != len(self.url):
+            raise Exception("该Page的url和size(都是list)元素个数不同，请检查！")
+        return self.size
 
 
 class VideoDownloader:
-    def __init__(self, title, page: PageInAPI, target_url_list: List[FinalUrlContainer]):
+    def __init__(self, title, page: PageInAPI):  # , target_url_list: List[FinalUrlContainer]
         self.title = title
         self.page = page
-        self.final_url_list = target_url_list
         self.local_path = Path(__file__)  # 这里是随便设个值，反正后面要改
 
-    async def download(self, save_path: Path, video_format: str = ".flv", all_progress_value: Union[int, float] = 0):
+    async def download(self, save_path: Path, video_format: str = ".flv", all_progress_value: Union[int, float] = 0, headers: dict = None):
+        if headers is None:
+            headers = MyConfig.download_base_headers
         self.local_path = Util.ensure_dir_exists(save_path / self.title)
-        for url_container in self.final_url_list:
+
+        for _index, url in enumerate(self.page.get_url()):
+            if len(self.page.get_url()) > 1:
+                video_name: str = self.page.part + f"_{_index}" + video_format
+            else:
+                video_name: str = self.page.part + video_format
+
             size_record = 0
-            async_downloader = httpx.AsyncClient(headers=MyConfig.download_base_headers)
-            with open(self.local_path / (self.page.part + video_format), 'wb') as f:
-                async with async_downloader.stream('GET', url_container.url) as response:
+            async_downloader = httpx.AsyncClient(headers=headers)
+            with open(self.local_path / video_name, 'wb') as f:
+                async with async_downloader.stream('GET', url) as response:
                     async for chunk in response.aiter_bytes():
                         size_record += len(chunk)
-                        progress = int(size_record / url_container.size * 100)
+                        progress = int(size_record / self.page.get_size()[_index] * 100)
                         ui_tool_kit.recorded_size += len(chunk)
                         ui_tool_kit.update_status_on_ui(progress, all_progress_value)
                         f.write(chunk)
-            # await async_downloader.aclose()
-        await asyncio.sleep(1)
+        # await async_downloader.aclose()
+        # await asyncio.sleep(1)

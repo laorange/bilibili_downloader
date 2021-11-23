@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>417</width>
-    <height>339</height>
+    <width>399</width>
+    <height>308</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>B站下载小工具</string>
+   <string>B站下载小工具 v1.0.0</string>
   </property>
   <property name="windowIcon">
    <iconset>
@@ -293,7 +293,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="label_9">
             <property name="text">
-             <string>总进度</string>
+             <string>进度</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -320,7 +320,7 @@
           <item row="0" column="0">
            <widget class="QLabel" name="label_8">
             <property name="text">
-             <string>进度</string>
+             <string>总进度</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -426,8 +426,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>417</width>
-     <height>26</height>
+     <width>399</width>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">

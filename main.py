@@ -18,6 +18,8 @@ from util.signals import my_signal
 
 BASE_DIR = Path(__file__).resolve().parent
 
+__version__ = "1.0.0"
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -46,6 +48,8 @@ class MainWindow(QMainWindow):
         self.ui.open_base_dir.triggered.connect(self.open_window_of_a_dir)
         self.ui.quit.triggered.connect(self.quit)
         self.ui.read_log.triggered.connect(self.read_log)
+        self.ui.about_this.triggered.connect(self.about_tis)
+
         self.ui.change_save_path.clicked.connect(self.change_save_path_event)
         self.ui.video_format.currentIndexChanged.connect(self.video_format_change_event)
         self.ui.video_quality.currentIndexChanged.connect(self.video_quality_change_event)
@@ -113,6 +117,10 @@ class MainWindow(QMainWindow):
     def read_log(self):
         self.log_window.show()
 
+    def about_tis(self):
+        QMessageBox.about(self, "关于本程序", f"本项目仅用于学习交流，请勿用于任何商业用途！\n"
+                                         f"项目地址：https://github.com/laorange/bilibili_downloader/\n版本号：{__version__}")
+
     # endregion
 
     # region 组件-对应的事件
@@ -150,7 +158,7 @@ class MainWindow(QMainWindow):
         self.ui.progress_bar.setValue(progress_value)
 
     def set_all_progress_bar(self, all_progress_value: int):
-        self.ui.all_progress_bar.setValue(all_progress_value)
+        self.ui.all_progress_bar.setValue(int(all_progress_value))
 
     def set_url_box(self, url_text: str):
         self.ui.url.setText(url_text)
@@ -192,11 +200,16 @@ class MainWindow(QMainWindow):
             ui_tool_kit.initialize_status()
         else:
             try:
-                ui_tool_kit.set_download_button_text("解析中")
-                ui_tool_kit.disable_download_button()
+                self.set_download_button_text("解析中")
+                self.disable_download_button()
+                QMessageBox.about(self, "请确认", "已检测到输入，即将开始解析\n解析可能会消耗若干秒钟，还请耐心等待")
+
                 video_handler = VideoHandler(url, self.get_video_quality(), self.video_format, self.SAVE_PATH)
                 video_info_list = [f"{downloader.title}-{downloader.page.part}" for downloader in video_handler.video_parser.downloader_list]
-                video_info_showed = "以下视频将会被下载，请确认：\n" + "\n".join(video_info_list)
+                if len(video_info_list) > 6:
+                    video_info_showed = "以下视频将会被下载，请确认：\n" + "\n".join(video_info_list[:5]) + f"\n...等{len(video_info_list)}个视频"
+                else:
+                    video_info_showed = f"以下{len(video_info_list)}个视频将会被下载，请确认：\n" + "\n".join(video_info_list)
                 choice = QMessageBox.question(self, "是否开始下载?", video_info_showed)
                 if choice == QMessageBox.Yes:
                     task = Thread(target=download_func)
