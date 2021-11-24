@@ -152,7 +152,7 @@ class FanVideoParser(VideoParserInterface):
         page_list: List[PageInAPI] = [PageInAPI(episode.__dict__) for episode in episode_list if
                                       ((not single_page_flag) or first_step_id in episode.share_url)]
         headers = {**MyConfig.base_headers,
-                   'Cookie': MyConfig.sess_data,
+                   'Cookie': "SESSDATA=" + MyConfig.sess_data,
                    'Host': 'api.bilibili.com'}
         for page in page_list:
             url_api_step3 = f'https://api.bilibili.com/x/player/playurl?cid=' \

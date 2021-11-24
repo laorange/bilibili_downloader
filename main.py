@@ -22,7 +22,7 @@ from util.signals import my_signal
 
 BASE_DIR = Path(os.path.realpath(sys.argv[0])).resolve().parent
 
-__version__ = "1.2.0"
+__version__ = "1.1.0"
 
 if sys.version_info.major + 0.1 * sys.version_info.minor < 3.8:
     input("您的python版本过低，请使用3.8及以上版本，或改写全部的海象运算符( := )")
@@ -56,7 +56,7 @@ class MainWindow(QMainWindow):
 
         # region 绑定主窗口-槽事件
         self.ui.open_base_dir.triggered.connect(self.open_window_of_a_dir)
-        self.ui.quit.triggered.connect(self.quit)
+        self.ui.quit.triggered.connect(self.close)
         self.ui.read_log.triggered.connect(self.read_log)
         self.ui.about_this.triggered.connect(self.about_tis)
         self.ui.help_text.triggered.connect(self.help_text)
@@ -124,10 +124,10 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.warning(self, "很抱歉", "打开指定文件夹的功能仅支持在Windows上使用")
 
-    def quit(self):
+    def close(self):
         choice = QMessageBox.question(self, "即将退出程序", "确认退出程序？")
         if choice == QMessageBox.Yes:
-            self.close()
+            return super(MainWindow, self).close()
 
     def read_log(self):
         self.log_window.showMaximized()
@@ -260,7 +260,7 @@ class MainWindow(QMainWindow):
     # endregion
 
     def closeEvent(self, event):
-        QMessageBox.about(self, "拜拜~", "朴实无华的退出界面")
+        # QMessageBox.about(self, "拜拜~", "朴实无华的退出界面")
         ui_tool_kit.kill_the_download_progress()
         sys.exit(app.exec_())
 
