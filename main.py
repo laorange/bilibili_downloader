@@ -1,3 +1,4 @@
+import datetime
 import os
 import sqlite3
 import sys
@@ -7,12 +8,15 @@ from typing import List
 from threading import Thread
 from urllib.parse import quote, unquote
 
+# import PySide2
 from PySide2.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFileDialog
 
 from util.main_ui import Ui_bilibili_downloader
 from util.log_ui import Ui_log
+from util.cookie_ui import Ui_cookie_ui
+
 from util.common_util import Util, CursorDecorator
-from util.my_classes import ui_tool_kit
+from util.my_classes import MyConfig, ui_tool_kit
 from util.video_handler import VideoHandler
 from util.signals import my_signal
 
@@ -37,6 +41,8 @@ class MainWindow(QMainWindow):
 
         self.db: sqlite3.Connection = self.connect_db()
         self.log_window = LogWindow(self.db)
+        self.cookie_window = CookieWindow(self.db)
+        self.cookie_window.get_sess_data_and_its_update_time()  # 更新MyConfig里的设置
 
         # region 加载设置
         self.config: list = self.get_config()
@@ -54,6 +60,7 @@ class MainWindow(QMainWindow):
         self.ui.read_log.triggered.connect(self.read_log)
         self.ui.about_this.triggered.connect(self.about_tis)
         self.ui.help_text.triggered.connect(self.help_text)
+        self.ui.set_cookie_action.triggered.connect(self.set_cookie_action)
 
         self.ui.change_save_path.clicked.connect(self.change_save_path_event)
         self.ui.video_format.currentIndexChanged.connect(self.video_format_change_event)
@@ -98,8 +105,8 @@ class MainWindow(QMainWindow):
                 c.execute(f"insert into MyConfig (save_path, video_format, video_quality) "
                           f"VALUES ('{str(BASE_DIR / 'output')}', '.flv', '16')")
 
-                c.execute("create table Cookies (id INTEGER PRIMARY KEY AUTOINCREMENT, datetime char(20), SESSDATA text)")
-                c.execute(f"insert into Cookies (datetime, SESSDATA) VALUES ('{Util.get_datetime_str_now()}', '75a75cf2%2C1564669876%2Cb7c7b171')")
+                c.execute("create table Cookie (id INTEGER PRIMARY KEY AUTOINCREMENT, datetime char(20), SESSDATA text)")
+                c.execute(f"insert into Cookie (datetime, SESSDATA) VALUES ('{Util.get_datetime_str_now()}', '{quote(MyConfig.sess_data)}')")
         return db
 
     def write_log(self, log_info: str):
@@ -140,6 +147,9 @@ class MainWindow(QMainWindow):
                 QMessageBox.warning(self, "警告", "未找到帮助文档，文档疑似被误删")
         else:
             QMessageBox.about(self, "提示", f"帮助文档路径：{str(help_text_path)}")
+
+    def set_cookie_action(self):
+        self.cookie_window.showMaximized()
 
     # endregion
 
@@ -285,6 +295,54 @@ class LogWindow(QWidget):
     def showMaximized(self) -> None:
         self.refresh_log()
         super(LogWindow, self).showMaximized()
+
+
+class CookieWindow(QWidget):
+    def __init__(self, database: sqlite3.Connection) -> None:
+        super(CookieWindow, self).__init__()
+        self.db = database
+        self.ui = Ui_cookie_ui()
+        self.ui.setupUi(self)
+
+        self.ui.cancel_button.clicked.connect(self.close)
+        self.ui.update_button.clicked.connect(self.update_button_event)
+
+    def showMaximized(self):
+        super(CookieWindow, self).showMaximized()
+        self.show_latest_sess_data()
+
+    def get_sess_data_and_its_update_time(self):
+        with CursorDecorator(self.db) as c:
+            c.execute("select datetime, SESSDATA from Cookie;")
+            log = c.fetchone()
+            update_datetime_str: str = log[0]
+            sess_data: str = unquote(log[1])
+            if MyConfig.sess_data != sess_data:
+                MyConfig.sess_data = sess_data
+            if MyConfig.sess_data_update_datetime_str != update_datetime_str:
+                MyConfig.sess_data_update_datetime_str = update_datetime_str
+        return sess_data, update_datetime_str
+
+    def show_latest_sess_data(self):
+        sess_data, update_datetime_str = self.get_sess_data_and_its_update_time()
+        update_datetime = datetime.datetime.strptime(update_datetime_str, MyConfig.time_format)
+        if (datetime.datetime.now() - update_datetime).days > 20:
+            QMessageBox.warning(self, "警告", "上一次更新cookie已经是20天以前了...\n建议择日不如撞日，赶紧更新一下吧！")
+        self.ui.update_datetime_text.setText(update_datetime_str)
+        self.ui.SESSDATA_INPUT.setText(sess_data)
+
+    def update_button_event(self):
+        choice = QMessageBox.question(self, "确认", "是否确认更新cookie？\n")
+        new_sess_data = self.ui.SESSDATA_INPUT.text()
+        if new_sess_data:
+            if choice == QMessageBox.Yes:
+                with CursorDecorator(self.db) as c:
+                    sql = f"update Cookie set SESSDATA='{quote(new_sess_data)}', datetime='{Util.get_datetime_str_now()}' where 1=1;"
+                    c.execute(sql)
+                    QMessageBox.about(self, "提示", "更新成功！")
+        else:
+            QMessageBox.about(self, "提示", "你的输入是空的哟！")
+        self.show_latest_sess_data()
 
 
 if __name__ == '__main__':

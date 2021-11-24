@@ -1,29 +1,10 @@
 import re
 import time
 from typing import List, Union, Dict
-from .common_util import Util
+from .common_util import Util, MyConfig
 from pathlib import Path
 import httpx
 from .signals import my_signal
-
-
-class MyConfig:
-    """项目的全局变量，哪里需要哪里调"""
-    base_headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'
-    }
-    download_base_headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:56.0) Gecko/20100101 Firefox/56.0',
-        'Accept': '*/*',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Range': 'bytes=0-',  # Range 的值要为 bytes=0- 才能下载完整视频
-        'Origin': 'https://www.bilibili.com',
-        "Referer": "https://www.bilibili.com/video/",
-        'Connection': 'keep-alive',
-    }
-    # ui刷新的间隔时间
-    UI_REFRESH_INTERVAL = 1
 
 
 class UiToolKit:

@@ -33,6 +33,8 @@ class Ui_bilibili_downloader(object):
         self.action_5.setObjectName(u"action_5")
         self.read_log = QAction(bilibili_downloader)
         self.read_log.setObjectName(u"read_log")
+        self.set_cookie_action = QAction(bilibili_downloader)
+        self.set_cookie_action.setObjectName(u"set_cookie_action")
         self.centralwidget = QWidget(bilibili_downloader)
         self.centralwidget.setObjectName(u"centralwidget")
         self.horizontalLayout_6 = QHBoxLayout(self.centralwidget)
@@ -267,19 +269,23 @@ class Ui_bilibili_downloader(object):
         self.menu.setObjectName(u"menu")
         self.menu_2 = QMenu(self.menubar)
         self.menu_2.setObjectName(u"menu_2")
+        self.menu_3 = QMenu(self.menubar)
+        self.menu_3.setObjectName(u"menu_3")
         bilibili_downloader.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(bilibili_downloader)
         self.statusbar.setObjectName(u"statusbar")
         bilibili_downloader.setStatusBar(self.statusbar)
 
         self.menubar.addAction(self.menu.menuAction())
+        self.menubar.addAction(self.menu_3.menuAction())
         self.menubar.addAction(self.menu_2.menuAction())
         self.menu.addAction(self.open_base_dir)
-        self.menu.addAction(self.read_log)
         self.menu.addSeparator()
         self.menu.addAction(self.quit)
         self.menu_2.addAction(self.help_text)
+        self.menu_2.addAction(self.read_log)
         self.menu_2.addAction(self.about_this)
+        self.menu_3.addAction(self.set_cookie_action)
 
         self.retranslateUi(bilibili_downloader)
 
@@ -294,6 +300,7 @@ class Ui_bilibili_downloader(object):
         self.open_base_dir.setText(QCoreApplication.translate("bilibili_downloader", u"\u5de5\u4f5c\u6587\u4ef6\u5939", None))
         self.action_5.setText(QCoreApplication.translate("bilibili_downloader", u"\u6253\u8d4f", None))
         self.read_log.setText(QCoreApplication.translate("bilibili_downloader", u"\u67e5\u770b\u65e5\u5fd7", None))
+        self.set_cookie_action.setText(QCoreApplication.translate("bilibili_downloader", u"\u8bbe\u7f6ecookie", None))
         self.label_4.setText(QCoreApplication.translate("bilibili_downloader", u"\u23ec", None))
         self.label.setText("")
         self.label_5.setText(QCoreApplication.translate("bilibili_downloader", u"\u23ec", None))
@@ -319,5 +326,6 @@ class Ui_bilibili_downloader(object):
         self.download_button.setText(QCoreApplication.translate("bilibili_downloader", u"\u4e0b\u8f7d", None))
         self.menu.setTitle(QCoreApplication.translate("bilibili_downloader", u"\u6587\u4ef6", None))
         self.menu_2.setTitle(QCoreApplication.translate("bilibili_downloader", u"\u5e2e\u52a9", None))
+        self.menu_3.setTitle(QCoreApplication.translate("bilibili_downloader", u"\u8bbe\u7f6e", None))
     # retranslateUi
 

@@ -79,6 +79,7 @@ class NormalVideoParser(VideoParserInterface):
 # https://www.bilibili.com/bangumi/play/ss2572
 class FanVideoParser(VideoParserInterface):
     def __init__(self, url: str, quality: Union[str, int]):
+        ui_tool_kit.warning("请注意", "番剧的下载需要在”设置“-”设置cookie“中更新数据后才能下载哦~")
         super().__init__(url, quality)
         # raise Exception("当前版本不支持下载番剧")
 
@@ -145,7 +146,7 @@ class FanVideoParser(VideoParserInterface):
         # region 获取最终的 page_list: List[PageInAPI]
         page_list: List[PageInAPI] = [PageInAPI(episode.__dict__) for episode in episode_list]
         headers = {**MyConfig.base_headers,
-                   'Cookie': 'SESSDATA=75a75cf2%2C1564669876%2Cb7c7b171',
+                   'Cookie': MyConfig.sess_data,
                    'Host': 'api.bilibili.com'}
         for page in page_list:
             url_api_step3 = f'https://api.bilibili.com/x/player/playurl?cid=' \
