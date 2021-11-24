@@ -135,3 +135,4 @@ output/
 bilibili_video/
 exe/
 assets/
+*.exe
