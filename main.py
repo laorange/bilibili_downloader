@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 from typing import List
 from threading import Thread
+from urllib.parse import quote, unquote
 
 from PySide2.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFileDialog
 
@@ -17,7 +18,7 @@ from util.signals import my_signal
 
 BASE_DIR = Path(os.path.realpath(sys.argv[0])).resolve().parent
 
-__version__ = "1.0.1"
+__version__ = "1.2.0.dev1"
 
 if sys.version_info.major + 0.1 * sys.version_info.minor < 3.8:
     input("您的python版本过低，请使用3.8及以上版本，或改写全部的海象运算符( := )")
@@ -104,7 +105,7 @@ class MainWindow(QMainWindow):
     def write_log(self, log_info: str):
         with CursorDecorator(self.db) as c:
             # c.execute("create table Log (id INTEGER PRIMARY KEY AUTOINCREMENT, datetime char(20), info text)")
-            sql = f"insert into Log (datetime, info) VALUES ('{Util.get_datetime_str_now()}', '{log_info}')"
+            sql = f"insert into Log (datetime, info) VALUES ('{Util.get_datetime_str_now()}', '{quote(log_info)}')"
             c.execute(sql)
 
     # region Action-事件
@@ -242,7 +243,7 @@ class MainWindow(QMainWindow):
                 from traceback import print_exc
                 print_exc()
                 # QMessageBox.critical(self, "出错了", "\n".join(e.args))
-                self.write_log(str(e) + f"[{url}]")
+                self.write_log(str(e) + f"【输入的url是：{url}】")
                 QMessageBox.critical(self, "出错了", str(e))
                 ui_tool_kit.initialize_status()
 
@@ -278,7 +279,7 @@ class LogWindow(QWidget):
             c.execute("select datetime,info from Log;")
             log_output: str = ""
             for log in c.fetchall():
-                log_output += f"{log[0]}: {log[1]}\n"
+                log_output += f"{log[0]}: {unquote(log[1])}\n"
         self.ui.log_text.setPlainText(log_output if log_output else "当前没有日志！")
 
     def showMaximized(self) -> None:
