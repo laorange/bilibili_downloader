@@ -22,7 +22,7 @@ from util.signals import my_signal
 
 BASE_DIR = Path(os.path.realpath(sys.argv[0])).resolve().parent
 
-__version__ = "1.2.0.dev1"
+__version__ = "1.2.0"
 
 if sys.version_info.major + 0.1 * sys.version_info.minor < 3.8:
     input("您的python版本过低，请使用3.8及以上版本，或改写全部的海象运算符( := )")
@@ -260,11 +260,9 @@ class MainWindow(QMainWindow):
     # endregion
 
     def closeEvent(self, event):
-        choice = QMessageBox.question(self, "朴实无华的确认框", "真的要退出程序吗？")
-        if choice == QMessageBox.Yes:
-            print("拜拜了您嘞！")
-            ui_tool_kit.kill_the_download_progress()
-            sys.exit(app.exec_())
+        QMessageBox.about(self, "拜拜~", "朴实无华的退出界面")
+        ui_tool_kit.kill_the_download_progress()
+        sys.exit(app.exec_())
 
 
 class LogWindow(QWidget):

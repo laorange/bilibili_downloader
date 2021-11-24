@@ -167,7 +167,7 @@ class FanVideoParser(VideoParserInterface):
                     page.add_size(_chunk['size'])
             except KeyError:
                 if html_step3['code'] != 0:
-                    ui_tool_kit.warning("注意", '请注意!title:{page.part}，当前集数为B站大会员专享,若想下载,Cookie中请传入大会员的SESSDATA。详情请查看日志。'
+                    ui_tool_kit.warning("注意", f'请注意!title:{page.part}，当前集数为B站大会员专享,若想下载,Cookie中请传入大会员的SESSDATA。详情请查看日志。'
                                               '\n设置方法：在”设置“-”设置cookie“中更新')
                     ui_tool_kit.write_log(f"没有大会员，已跳过Page: {page.__dict__}")
                 else:
