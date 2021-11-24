@@ -327,7 +327,7 @@ class CookieWindow(QWidget):
         sess_data, update_datetime_str = self.get_sess_data_and_its_update_time()
         update_datetime = datetime.datetime.strptime(update_datetime_str, MyConfig.time_format)
         if (datetime.datetime.now() - update_datetime).days > 20:
-            QMessageBox.warning(self, "警告", "上一次更新cookie已经是20天以前了...\n建议择日不如撞日，赶紧更新一下吧！")
+            QMessageBox.warning(self, "警告", "上一次更新cookie已经是20多天以前了(有效期30天)...\n建议择日不如撞日，赶紧更新一下吧！")
         self.ui.update_datetime_text.setText(update_datetime_str)
         self.ui.SESSDATA_INPUT.setText(sess_data)
 
