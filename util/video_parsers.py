@@ -79,7 +79,8 @@ class NormalVideoParser(VideoParserInterface):
 # https://www.bilibili.com/bangumi/play/ss2572
 class FanVideoParser(VideoParserInterface):
     def __init__(self, url: str, quality: Union[str, int]):
-        ui_tool_kit.warning("请注意", "番剧的下载需要在”设置“-”设置cookie“中更新数据后才能下载哦~")
+        # if MyConfig.sess_data == MyConfig.init_sess_data:
+        #     ui_tool_kit.warning("请注意", "番剧的下载需要在”设置“-”设置cookie“中更新数据后才能下载哦~")
         super().__init__(url, quality)
         # raise Exception("当前版本不支持下载番剧")
 
@@ -94,6 +95,10 @@ class FanVideoParser(VideoParserInterface):
         # region step-1 获取season_id
         if not (bv_search := re.search(r'/?bangumi/play/(\w+)/?\??', self.url)):
             raise Exception("解析错误。请检查输入的网址是否正确。")
+        single_page_flag = False
+        first_step_id = bv_search.group(1)
+        if first_step_id.lower().startswith("ep"):
+            single_page_flag = True
         start_url_step1 = "https://www.bilibili.com/bangumi/play/" + bv_search.group(1)
 
         html_step1: str = httpx.get(start_url_step1, headers=MyConfig.base_headers).text
@@ -115,7 +120,7 @@ class FanVideoParser(VideoParserInterface):
                 self.short_title: str = data['title']
                 self.long_title: str = data['long_title']
                 self.part = (self.short_title + " " + self.long_title).strip()
-                self.share_url = data["share_url"]
+                self.share_url: str = data["share_url"]
                 self.is_vip = (data["badge"] == "会员")
                 if self.is_vip:
                     temp_info_dict["is_vip"] = True
@@ -144,7 +149,8 @@ class FanVideoParser(VideoParserInterface):
         # endregion
 
         # region 获取最终的 page_list: List[PageInAPI]
-        page_list: List[PageInAPI] = [PageInAPI(episode.__dict__) for episode in episode_list]
+        page_list: List[PageInAPI] = [PageInAPI(episode.__dict__) for episode in episode_list if
+                                      ((not single_page_flag) or first_step_id in episode.share_url)]
         headers = {**MyConfig.base_headers,
                    'Cookie': MyConfig.sess_data,
                    'Host': 'api.bilibili.com'}
@@ -153,13 +159,19 @@ class FanVideoParser(VideoParserInterface):
                             f'{page.__getattribute__("cid")}&avid={page.__getattribute__("aid")}&qn={self.quality}'
             print(url_api_step3)
             html_step3 = httpx.get(url_api_step3, headers=headers).json()
+
             # 当下载会员视频时,如果cookie中传入的不是大会员的SESSDATA时就会返回: {'code': -404, 'message': '啥都木有', 'ttl': 1, 'data': None}
-            if html_step3['code'] != 0:
-                ui_tool_kit.warning("注意", '注意!当前集数为B站大会员专享,若想下载,Cookie中请传入大会员的SESSDATA')
-                ui_tool_kit.write_log(f"没有大会员，已跳过Page: {page.__dict__}")
-            else:
+            try:
                 for _chunk in html_step3['data']['durl']:
                     page.add_url(_chunk['url'])
                     page.add_size(_chunk['size'])
+            except KeyError:
+                if html_step3['code'] != 0:
+                    ui_tool_kit.warning("注意", '请注意!title:{page.part}，当前集数为B站大会员专享,若想下载,Cookie中请传入大会员的SESSDATA。详情请查看日志。'
+                                              '\n设置方法：在”设置“-”设置cookie“中更新')
+                    ui_tool_kit.write_log(f"没有大会员，已跳过Page: {page.__dict__}")
+                else:
+                    ui_tool_kit.warning("注意", f'请注意!遭遇未知原因解析错误！title:{page.part}，详情请查看日志')
+                    ui_tool_kit.write_log(f"出错了，已跳过Page: {page.__dict__}")
         return page_list
         # endregion
