@@ -8,5 +8,7 @@ pyside2-uic ..\log.ui -o log_ui.py
 
 
 
-
+activate qt
+d:
+cd D:\programming\py\gui\bilibili_downloader
 pyinstaller -Fw main.py -i static/ico.ico

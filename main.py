@@ -17,7 +17,7 @@ from util.signals import my_signal
 
 BASE_DIR = Path(os.path.realpath(sys.argv[0])).resolve().parent
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 if sys.version_info.major + 0.1 * sys.version_info.minor < 3.8:
     input("您的python版本过低，请使用3.8及以上版本，或改写全部的海象运算符( := )")
@@ -263,7 +263,6 @@ class LogWindow(QWidget):
         self.ui = Ui_log()
         self.ui.setupUi(self)
 
-        self.refresh_log()
         self.ui.close_button.clicked.connect(self.close)
         self.ui.clear_log.clicked.connect(self.clear_log)
 
@@ -281,6 +280,10 @@ class LogWindow(QWidget):
             for log in c.fetchall():
                 log_output += f"{log[0]}: {log[1]}\n"
         self.ui.log_text.setPlainText(log_output if log_output else "当前没有日志！")
+
+    def showMaximized(self) -> None:
+        self.refresh_log()
+        super(LogWindow, self).showMaximized()
 
 
 if __name__ == '__main__':
