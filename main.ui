@@ -48,7 +48,7 @@
        </spacer>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
+       <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0,0,0,1">
         <item>
          <spacer name="horizontalSpacer_3">
           <property name="orientation">
@@ -137,6 +137,9 @@
           </property>
           <property name="text">
            <string>⏬</string>
+          </property>
+          <property name="scaledContents">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
