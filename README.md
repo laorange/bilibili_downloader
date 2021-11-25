@@ -1,29 +1,46 @@
 # Bilibili_downloader
 
-项目地址：https://github.com/laorange/bilibili_downloader/
+## ⭐如果能下😁记得STAR⭐
 
-## [特点]
+项目地址：[GitHub](https://github.com/laorange/bilibili_downloader/)  [Gitee](https://gitee.com/laorange/bilibili_downloader/)
+
+下载地址：[GitHub](https://github.com/laorange/bilibili_downloader/releases)  [Gitee](https://gitee.com/laorange/bilibili_downloader/releases)
+
+LICENCE：GPL-3.0
+
+## 1.  特点
 
 1. 使用了`pyside2`构建ui
 2. 使用了`httpx`以协程方式下载
-3. 借鉴了java接口式、面向对象开发 (java初学者的一次尝试😆)
-4. (尽力了)准-全类型标注
+3. 借鉴了Java接口式、面向对象开发 (Java初学者的一次尝试😆)
+4. 准 - 全类型标注 (尽力了)
 
-## [功能]
+## 2.功能
 
 - [x] 能够下载bilibili单集的普通视频
 - [x] 能够下载bilibili多集的普通视频
-- [ ] 能够下载bilibili番剧
+- [x] 能够下载bilibili番剧
 
-## [使用方法]
+## 3.使用方法
+
+### 3.1  普通视频
 
 1. 在电脑浏览器上找到想要下载的b站视频，复制网页链接
-2. “视频链接”后的文本输入框内粘贴该链接
-   + 下载**单集视频**或者**多集视频**的全部：直接传入B站视频链接，例：https://www.bilibili.com/video/BV11K411376D
-   + 下载其中一集:传入那一集的链接 (网址中会包含 `?p=`)，例：https://www.bilibili.com/video/BV11K411376D?p=8
+2. 在“视频链接”后的文本输入框内粘贴该链接，另外：
+   + 下载**单集视频**或者**多集视频**的全部：直接传入B站视频链接，例：[bilibili.com/video/BV11K411376D](https://www.bilibili.com/video/BV11K411376D)
+   + 下载其中一集:传入那一集的链接 (网址中会包含 `?p=`)，例：[bilibili.com/video/BV11K411376D?p=8](https://www.bilibili.com/video/BV11K411376D?p=8)
 3. 点击“下载”按钮
 
-## [截图]
+### 3.2  番剧
+
+1. 在“设置”-“设置cookie”中添加自己的SESSDATA (内含操作示意图)
+2. 在电脑浏览器上找到想要下载的番剧，复制网页链接
+3. 需要注意的是：
+   + 如果想要下载番剧所属的全部视频，则网址中会包含 `ss`， 例：[bilibili.com/bangumi/play/ss39481](https://www.bilibili.com/bangumi/play/ss39481)
+   + 如果想要下载番剧的某一集，则网址中会包含 `ep`， 例：[bilibili.com/bangumi/play/ep424836/](https://www.bilibili.com/bangumi/play/ep424836/)
+4. 点击“下载”按钮
+
+## 4.截图
 
 <img src="static/demo1.png" alt="demo1" style="zoom:50%;" />
 
@@ -31,7 +48,39 @@
 
 <img src="static/demo3.png" alt="demo1" style="zoom:50%;" />
 
-## [二次开发-构思]
+## 5.更新日志
+
+### v1.1.0
+
+- [x] 新增：番剧下载功能
+- [x] 新增：可设置cookie
+- [x] 修复：因为未转义导致的日志写入异常
+
+### v1.0.1
+
+- [x] 修复：日志只在重启程序后才刷新的bug
+
+### v1.0.0
+
+- [x] 新增：能够下载bilibili的普通视频
+- [x] 修复：包含 `?p=`的链接会解析错误
+- [x] 修复：在下载期间退出窗口，子线程仍在后台下载 或 主线程卡死无法退出
+- [x] 修复：变更保存路径后，需要重启才能恢复，否则会报错
+
+## 6.一些想说的
+
++ **开发本程序仅用于学习交流，请勿用于任何商业用途！**
++ 普通视频的解析器是不需要用户自行更新cookies的加密版本；番剧下载器需要在“设置”-“设置cookie”中添加自己的SESSDATA。
++ ui中的“主进度”其实是正在下载的**文件的序号**占下载任务总数的百分比，因此由于协程下载的特性，会在各个文件反复横跳，因此“主进度”仅用于提升观赏效果。
++ 正因如此，本程序**同时下载多集视频**的效率**远高于**下载**单集视频**。
+
+## 7.参考资料
+
++ 下载视频的接口参考了
+  + [GitHub@Henry](https://github.com/Henryhaohao/) 的相关项目：[`Henryhaohao/Bilibili_video_download`](https://github.com/Henryhaohao/Bilibili_video_download)
+  + [bilibili@凡云](https://space.bilibili.com/3491267) 的文章 [《2020年B站番剧相关API整合》](https://www.bilibili.com/read/cv5293665/)
+
+## 8.对二次开发的构思
 
 `VideoHandler`在初始化时，会调用`get_proper_video_parser`方法，如下方代码所示
 
@@ -89,7 +138,7 @@ class VideoDownloader:
 class PageInAPI:
     """用于记录api中的单个Page的信息"""
     def __init__(self, info_dict: Dict[str, Union[int, str]]):
-        self.part = info_dict.get("part", '视频名')
+        self.part: str = info_dict.get("part", '视频名')
         self.url: List[str] = []
         self.size: List[int] = []
         # ...其他属性非必需，可以根据实际情况置空
@@ -106,25 +155,5 @@ class PageInAPI:
 1. 自定义`视频分析器`(继承自`VideoParserInterface`)，并重写`get_downloader_list`方法，使其能返回`List[VideoDownloader]`
 2. 更改`VideoHandler.get_proper_video_parser`中的逻辑，使其在指定条件下返回新的`视频分析器`。
 
-## [近期修复的bug]
 
-### 1.0.1
-
-- [x] 日志只在重启程序后才刷新的bug
-
-### 1.0.0
-
-- [x] 包含 `?p=`的链接解析错误
-- [x] 在下载期间退出窗口，子线程仍在后台下载 或 主线程卡死无法退出
-- [x] 变更保存路径后，需要重启才能恢复，否则会报错
-
-## [参考]
-
-+ 下载视频的接口是参考了 [Henry](https://github.com/Henryhaohao/) 的相关项目：[`Henryhaohao/Bilibili_video_download`](https://github.com/Henryhaohao/Bilibili_video_download)
-
-## [其他]
-
-+ 当前使用的视频解析器是不需要用户自行更新cookies的加密版本，**这是以牺牲下载速度换来的便利**。
-+ ui中的“主进度”其实是正在下载的文件的序号占下载任务总数的百分比，因此由于协程下载的特性，会在各个文件反复横跳，因此“主进度”仅用于提升观赏效果。
-+ 正因如此，本程序下载多集视频的效率远高于下载单集视频。
 

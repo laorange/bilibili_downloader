@@ -136,3 +136,4 @@ bilibili_video/
 exe/
 assets/
 *.exe
+/reference/

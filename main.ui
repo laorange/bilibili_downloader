@@ -48,7 +48,7 @@
        </spacer>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
+       <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0,0,0,1">
         <item>
          <spacer name="horizontalSpacer_3">
           <property name="orientation">
@@ -137,6 +137,9 @@
           </property>
           <property name="text">
            <string>⏬</string>
+          </property>
+          <property name="scaledContents">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -435,7 +438,6 @@
      <string>文件</string>
     </property>
     <addaction name="open_base_dir"/>
-    <addaction name="read_log"/>
     <addaction name="separator"/>
     <addaction name="quit"/>
    </widget>
@@ -444,9 +446,17 @@
      <string>帮助</string>
     </property>
     <addaction name="help_text"/>
+    <addaction name="read_log"/>
     <addaction name="about_this"/>
    </widget>
+   <widget class="QMenu" name="menu_3">
+    <property name="title">
+     <string>设置</string>
+    </property>
+    <addaction name="set_cookie_action"/>
+   </widget>
    <addaction name="menu"/>
+   <addaction name="menu_3"/>
    <addaction name="menu_2"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -478,6 +488,11 @@
   <action name="read_log">
    <property name="text">
     <string>查看日志</string>
+   </property>
+  </action>
+  <action name="set_cookie_action">
+   <property name="text">
+    <string>设置cookie</string>
    </property>
   </action>
  </widget>

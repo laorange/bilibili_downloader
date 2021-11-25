@@ -3,6 +3,7 @@ d:
 cd D:\programming\py\gui\bilibili_downloader\util
 pyside2-uic ..\main.ui -o main_ui.py
 pyside2-uic ..\log.ui -o log_ui.py
+pyside2-uic ..\cookie.ui -o cookie_ui.py
 
 
 
@@ -11,4 +12,4 @@ pyside2-uic ..\log.ui -o log_ui.py
 activate qt
 d:
 cd D:\programming\py\gui\bilibili_downloader
-pyinstaller -Fw main.py -i static/ico.ico
+pyinstaller -Fw main.py -i static/ico.ico -n bilibili_downloader

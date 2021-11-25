@@ -1,28 +1,10 @@
+import re
 import time
 from typing import List, Union, Dict
-from .common_util import Util
+from .common_util import Util, MyConfig
 from pathlib import Path
 import httpx
 from .signals import my_signal
-
-
-class MyConfig:
-    """项目的全局变量，哪里需要哪里调"""
-    base_headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'
-    }
-    download_base_headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:56.0) Gecko/20100101 Firefox/56.0',
-        'Accept': '*/*',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Range': 'bytes=0-',  # Range 的值要为 bytes=0- 才能下载完整视频
-        'Origin': 'https://www.bilibili.com',
-        "Referer": "https://www.bilibili.com/video/",
-        'Connection': 'keep-alive',
-    }
-    # ui刷新的间隔时间
-    UI_REFRESH_INTERVAL = 1
 
 
 class UiToolKit:
@@ -118,26 +100,29 @@ class PageInAPI:
         self.c_id = info_dict.get("cid", '')
         self.page: str = str(info_dict.get("page", '0'))
         self.part = info_dict.get("part", '视频名')
-        self.duration = info_dict.get("duration", '')
-        self.vid = info_dict.get("vid", '')
-        self.weblink = info_dict.get("weblink", '')
-        self.dimension = info_dict.get("dimension", '')
-        self.first_frame = info_dict.get("first_frame", '')
-        self._from = info_dict.get("from", '')
+        # self.duration = info_dict.get("duration", '')
+        # self.vid = info_dict.get("vid", '')
+        # self.weblink = info_dict.get("weblink", '')
+        # self.dimension = info_dict.get("dimension", '')
+        # self.first_frame = info_dict.get("first_frame", '')
+        # self._from = info_dict.get("from", '')
         self._info_dict = info_dict
+        for key, item in info_dict.items():
+            if re.search(r"^[A-Za-z]\w+", key):
+                self.__setattr__(key, item)
 
         self.url: List[str] = []
         self.size: List[int] = []
 
-    def set_url(self, url: str):
+    def add_url(self, url: str):
         self.url.append(url)
 
-    def set_size(self, size: int = 1):
+    def add_size(self, size: int = 1):
         self.size.append(size)
 
     def get_url(self) -> List[str]:
-        if not self.url:
-            raise Exception("该Page的url未被设置，请使用.set_url方法设置")
+        # if not self.url:
+        #     raise Exception("该Page的url未被设置，请使用.set_url方法设置")
         return self.url
 
     def get_size(self) -> List[int]:
@@ -161,8 +146,10 @@ class VideoDownloader:
                 headers = MyConfig.download_base_headers
             self.local_path = Util.ensure_dir_exists(save_path / self.title)
 
-            for _index, url in enumerate(self.page.get_url()):
-                if len(self.page.get_url()) > 1:
+            for _index, url in enumerate(url_list := self.page.get_url()):
+                if not url_list:
+                    continue
+                elif len(url_list) > 1:
                     video_name: str = self.page.part + f"_{_index}" + video_format
                 else:
                     video_name: str = self.page.part + video_format
@@ -170,19 +157,18 @@ class VideoDownloader:
                 ui_tool_kit.write_log(f"开始下载：{self.title}-{self.page.part}")
 
                 size_record = 0
-                async_downloader = httpx.AsyncClient(headers=headers)
-                with open(self.local_path / video_name, 'wb') as f:
-                    async with async_downloader.stream('GET', url) as response:
-                        async for chunk in response.aiter_bytes():
-                            if ui_tool_kit.block:
-                                raise KeyboardInterrupt
-                            size_record += len(chunk)
-                            progress = int(size_record / self.page.get_size()[_index] * 100)
-                            ui_tool_kit.recorded_size += len(chunk)
-                            ui_tool_kit.update_status_on_ui(progress, all_progress_value)
-                            f.write(chunk)
-
-                        ui_tool_kit.write_log(f"下载完成：{self.title}-{self.page.part}")
+                async with httpx.AsyncClient(headers=headers) as async_downloader:
+                    with open(self.local_path / video_name, 'wb') as f:
+                        async with async_downloader.stream('GET', url) as response:
+                            async for chunk in response.aiter_bytes():
+                                if ui_tool_kit.block:
+                                    raise KeyboardInterrupt
+                                size_record += len(chunk)
+                                progress = int(size_record / self.page.get_size()[_index] * 100)
+                                ui_tool_kit.recorded_size += len(chunk)
+                                ui_tool_kit.update_status_on_ui(progress, all_progress_value)
+                                f.write(chunk)
+                            ui_tool_kit.write_log(f"下载完成：{self.title}-{self.page.part}")
         except KeyboardInterrupt:
             ui_tool_kit.write_log("强行终止下载任务")
             return
