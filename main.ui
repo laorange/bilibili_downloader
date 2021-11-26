@@ -85,6 +85,9 @@
           <property name="text">
            <string>⏬</string>
           </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
          </widget>
         </item>
         <item>
@@ -113,6 +116,9 @@
           <property name="scaledContents">
            <bool>true</bool>
           </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
          </widget>
         </item>
         <item>
@@ -139,6 +145,12 @@
            <string>⏬</string>
           </property>
           <property name="scaledContents">
+           <bool>false</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="wordWrap">
            <bool>false</bool>
           </property>
          </widget>
@@ -447,6 +459,7 @@
     </property>
     <addaction name="help_text"/>
     <addaction name="read_log"/>
+    <addaction name="check_for_update_action"/>
     <addaction name="about_this"/>
    </widget>
    <widget class="QMenu" name="menu_3">
@@ -493,6 +506,11 @@
   <action name="set_cookie_action">
    <property name="text">
     <string>设置cookie</string>
+   </property>
+  </action>
+  <action name="check_for_update_action">
+   <property name="text">
+    <string>检查更新</string>
    </property>
   </action>
  </widget>
