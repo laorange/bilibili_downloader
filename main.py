@@ -1,14 +1,17 @@
 import datetime
 import os
+import re
 import sqlite3
 import sys
 import time
+import traceback
 from pathlib import Path
 from typing import List
 from threading import Thread
 from urllib.parse import quote, unquote
 
 # import PySide2
+import httpx
 from PySide2.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFileDialog
 
 from util.main_ui import Ui_bilibili_downloader
@@ -22,7 +25,7 @@ from util.signals import my_signal
 
 BASE_DIR = Path(os.path.realpath(sys.argv[0])).resolve().parent
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 if sys.version_info.major + 0.1 * sys.version_info.minor < 3.8:
     input("您的python版本过低，请使用3.8及以上版本，或改写全部的海象运算符( := )")
@@ -61,6 +64,7 @@ class MainWindow(QMainWindow):
         self.ui.about_this.triggered.connect(self.about_tis)
         self.ui.help_text.triggered.connect(self.help_text)
         self.ui.set_cookie_action.triggered.connect(self.set_cookie_action)
+        self.ui.check_for_update_action.triggered.connect(self.check_for_update)
 
         self.ui.change_save_path.clicked.connect(self.change_save_path_event)
         self.ui.video_format.currentIndexChanged.connect(self.video_format_change_event)
@@ -124,11 +128,6 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.warning(self, "很抱歉", "打开指定文件夹的功能仅支持在Windows上使用")
 
-    def close(self):
-        choice = QMessageBox.question(self, "即将退出程序", "确认退出程序？")
-        if choice == QMessageBox.Yes:
-            return super(MainWindow, self).close()
-
     def read_log(self):
         self.log_window.showMaximized()
 
@@ -150,6 +149,24 @@ class MainWindow(QMainWindow):
 
     def set_cookie_action(self):
         self.cookie_window.showMaximized()
+
+    def check_for_update(self):
+        try:
+            url = "https://gitee.com/api/v5/repos/laorange/bilibili_downloader/releases/latest"
+            _data: dict = httpx.get(url, headers=MyConfig.base_headers).json()
+            latest_version = ".".join([group for group in re.search(r"(\d+)\.(\d+)\.(\d+)", _data.get('name')).groups()])
+            if latest_version == __version__:
+                ui_tool_kit.about("提示", "当前版本已经是最新版啦！")
+            else:
+                choice = QMessageBox.question(self, "是否更新", f"当前版本：{__version__}\n最新版本：{latest_version}\n\n是否更新？")
+                if choice == QMessageBox.Yes:
+                    if sys.platform.startswith('win'):
+                        os.startfile("https://gitee.com/laorange/bilibili_downloader/releases/" + quote(_data.get("tag_name")))
+                    else:
+                        QMessageBox.warning(self, "提示", "由于系统兼容性问题，请通过访问帮助文档中的下载地址来下载最新版本")
+        except Exception as e:
+            ui_tool_kit.warning("出错了", str(e))
+            ui_tool_kit.write_log(traceback.format_exc())
 
     # endregion
 
@@ -260,9 +277,17 @@ class MainWindow(QMainWindow):
     # endregion
 
     def closeEvent(self, event):
-        # QMessageBox.about(self, "拜拜~", "朴实无华的退出界面")
-        ui_tool_kit.kill_the_download_progress()
-        sys.exit(app.exec_())
+        reply = QMessageBox.question(self, '关闭提示', "是否要退出界面？")
+        if reply == QMessageBox.Yes:
+            ui_tool_kit.kill_the_download_progress()
+            sys.exit(app.exec_())
+        elif reply == QMessageBox.No:
+            event.ignore()
+
+    def show(self):
+        super(MainWindow, self).show()
+        if not sys.platform.startswith('win'):
+            QMessageBox.warning(self, "提示", "部分功能在非Windows系统上使用可能会有异常\n建议在Windows系统上使用本程序")
 
 
 class LogWindow(QWidget):

@@ -5,6 +5,7 @@ from .common_util import Util, MyConfig
 from pathlib import Path
 import httpx
 from .signals import my_signal
+import traceback
 
 
 class UiToolKit:
@@ -100,12 +101,6 @@ class PageInAPI:
         self.c_id = info_dict.get("cid", '')
         self.page: str = str(info_dict.get("page", '0'))
         self.part = info_dict.get("part", '视频名')
-        # self.duration = info_dict.get("duration", '')
-        # self.vid = info_dict.get("vid", '')
-        # self.weblink = info_dict.get("weblink", '')
-        # self.dimension = info_dict.get("dimension", '')
-        # self.first_frame = info_dict.get("first_frame", '')
-        # self._from = info_dict.get("from", '')
         self._info_dict = info_dict
         for key, item in info_dict.items():
             if re.search(r"^[A-Za-z]\w+", key):
@@ -121,8 +116,6 @@ class PageInAPI:
         self.size.append(size)
 
     def get_url(self) -> List[str]:
-        # if not self.url:
-        #     raise Exception("该Page的url未被设置，请使用.set_url方法设置")
         return self.url
 
     def get_size(self) -> List[int]:
@@ -171,6 +164,6 @@ class VideoDownloader:
                             ui_tool_kit.write_log(f"下载完成：{self.title}-{self.page.part}")
         except KeyboardInterrupt:
             ui_tool_kit.write_log("强行终止下载任务")
-            return
         except Exception as e:
-            ui_tool_kit.write_log(str(e))
+            ui_tool_kit.warning("出错了", str(e))
+            ui_tool_kit.write_log(traceback.format_exc())

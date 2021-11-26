@@ -35,6 +35,8 @@ class Ui_bilibili_downloader(object):
         self.read_log.setObjectName(u"read_log")
         self.set_cookie_action = QAction(bilibili_downloader)
         self.set_cookie_action.setObjectName(u"set_cookie_action")
+        self.check_for_update_action = QAction(bilibili_downloader)
+        self.check_for_update_action.setObjectName(u"check_for_update_action")
         self.centralwidget = QWidget(bilibili_downloader)
         self.centralwidget.setObjectName(u"centralwidget")
         self.horizontalLayout_6 = QHBoxLayout(self.centralwidget)
@@ -63,6 +65,7 @@ class Ui_bilibili_downloader(object):
         font.setFamily(u"Adobe Devanagari")
         font.setPointSize(36)
         self.label_4.setFont(font)
+        self.label_4.setAlignment(Qt.AlignCenter)
 
         self.horizontalLayout.addWidget(self.label_4)
 
@@ -73,6 +76,7 @@ class Ui_bilibili_downloader(object):
         self.label.setAutoFillBackground(True)
         self.label.setPixmap(QPixmap(u"static/bilibili_logo.png"))
         self.label.setScaledContents(True)
+        self.label.setAlignment(Qt.AlignCenter)
 
         self.horizontalLayout.addWidget(self.label)
 
@@ -81,6 +85,9 @@ class Ui_bilibili_downloader(object):
         self.label_5.setMinimumSize(QSize(80, 80))
         self.label_5.setMaximumSize(QSize(83, 80))
         self.label_5.setFont(font)
+        self.label_5.setScaledContents(False)
+        self.label_5.setAlignment(Qt.AlignCenter)
+        self.label_5.setWordWrap(False)
 
         self.horizontalLayout.addWidget(self.label_5)
 
@@ -88,6 +95,8 @@ class Ui_bilibili_downloader(object):
 
         self.horizontalLayout.addItem(self.horizontalSpacer_4)
 
+        self.horizontalLayout.setStretch(0, 1)
+        self.horizontalLayout.setStretch(4, 1)
 
         self.verticalLayout.addLayout(self.horizontalLayout)
 
@@ -284,6 +293,7 @@ class Ui_bilibili_downloader(object):
         self.menu.addAction(self.quit)
         self.menu_2.addAction(self.help_text)
         self.menu_2.addAction(self.read_log)
+        self.menu_2.addAction(self.check_for_update_action)
         self.menu_2.addAction(self.about_this)
         self.menu_3.addAction(self.set_cookie_action)
 
@@ -301,6 +311,7 @@ class Ui_bilibili_downloader(object):
         self.action_5.setText(QCoreApplication.translate("bilibili_downloader", u"\u6253\u8d4f", None))
         self.read_log.setText(QCoreApplication.translate("bilibili_downloader", u"\u67e5\u770b\u65e5\u5fd7", None))
         self.set_cookie_action.setText(QCoreApplication.translate("bilibili_downloader", u"\u8bbe\u7f6ecookie", None))
+        self.check_for_update_action.setText(QCoreApplication.translate("bilibili_downloader", u"\u68c0\u67e5\u66f4\u65b0", None))
         self.label_4.setText(QCoreApplication.translate("bilibili_downloader", u"\u23ec", None))
         self.label.setText("")
         self.label_5.setText(QCoreApplication.translate("bilibili_downloader", u"\u23ec", None))
