@@ -52,6 +52,15 @@ class Util:
         final_num, unit_index = transform_size(num_of_bytes)
         return f"{final_num:.2f}{units[unit_index]}"
 
+    @staticmethod
+    def ensure_safe_file_name(name: str):
+        # fix: windows文件夹的名字中不能包含 \/:*?"<>|
+        replace_table: dict = {"\\": "_", "/": "_", ":": "：", "*": "x",
+                               "?": "？", '"': "'", "<": "(", ">": ")", "|": "丨"}
+        for forbidden_char, replace_char in replace_table.items():
+            name = name.replace(forbidden_char, replace_char)
+        return name
+
 
 class CursorDecorator:
     def __init__(self, db: sqlite3.Connection):

@@ -12,7 +12,7 @@ LICENCE：GPL-3.0
 
 ## 1.  特点
 
-1. 使用了`pyside2`构建图形界面
+1. 使用了`PySide6`构建图形界面
 2. 使用了`httpx`以协程方式下载
 3. 借鉴了Java接口式、面向对象开发 (Java初学者的一次尝试😆)
 4. 准 - 全类型标注（尽力了...）
@@ -51,6 +51,11 @@ LICENCE：GPL-3.0
 <img src="static/demo3.png" alt="demo1" style="zoom:50%;" />
 
 ## 5.更新日志
+
+### v1.1.3
+
+- [x] 修复：如果视频单集标题含有`/ `时会出错的bug
+- [x] 升级：将pyside2替换升级为pyside6
 
 ### v1.1.2
 

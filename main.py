@@ -10,9 +10,9 @@ from typing import List
 from threading import Thread
 from urllib.parse import quote, unquote
 
-# import PySide2
+# import PySide6
 import httpx
-from PySide2.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFileDialog
+from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFileDialog
 
 from util.main_ui import Ui_bilibili_downloader
 from util.log_ui import Ui_log
@@ -23,13 +23,9 @@ from util.my_classes import MyConfig, ui_tool_kit
 from util.video_handler import VideoHandler
 from util.signals import my_signal
 
+__version__ = "1.1.3"
+
 BASE_DIR = Path(os.path.realpath(sys.argv[0])).resolve().parent
-
-__version__ = "1.1.2"
-
-if sys.version_info.major + 0.1 * sys.version_info.minor < 3.8:
-    input("您的python版本过低，请使用3.8及以上版本，或改写全部的海象运算符( := )")
-    raise EnvironmentError
 
 
 class MainWindow(QMainWindow):
@@ -161,7 +157,7 @@ class MainWindow(QMainWindow):
                 choice = QMessageBox.question(self, "是否更新", f"当前版本：{__version__}\n最新版本：{latest_version}\n\n是否更新？")
                 if choice == QMessageBox.Yes:
                     if sys.platform.startswith('win'):
-                        os.startfile("https://gitee.com/laorange/bilibili_downloader/releases/" + quote(_data.get("tag_name")))
+                        os.startfile("https://gitee.com/laorange/bilibili_downloader/releases/")
                     else:
                         QMessageBox.warning(self, "提示", "由于系统兼容性问题，请通过访问帮助文档中的下载地址来下载最新版本")
         except Exception as e:
@@ -281,7 +277,7 @@ class MainWindow(QMainWindow):
         reply = QMessageBox.question(self, '关闭提示', "是否要退出界面？")
         if reply == QMessageBox.Yes:
             ui_tool_kit.kill_the_download_progress()
-            sys.exit(app.exec_())
+            sys.exit(app.exec())
         elif reply == QMessageBox.No:
             event.ignore()
 
@@ -302,7 +298,7 @@ class LogWindow(QWidget):
         self.ui.clear_log.clicked.connect(self.clear_log)
 
     def clear_log(self):
-        choice: bool = QMessageBox.question(self, "即将删除日志", "是否删除当前的所有日志？")
+        choice: bool = (QMessageBox.question(self, "即将删除日志", "是否删除当前的所有日志？") == QMessageBox.Yes)
         if choice:
             with CursorDecorator(self.db) as c:
                 c.execute("delete from Log where true;")
@@ -370,12 +366,23 @@ class CookieWindow(QWidget):
 
 
 if __name__ == '__main__':
+    if sys.version_info.major + 0.1 * sys.version_info.minor < 3.8:
+        input("您的python版本过低，请使用3.8及以上版本，或改写全部的海象运算符( := )")
+        raise EnvironmentError
+
+    if (cmd_file := (BASE_DIR / "cmd.txt")).exists():
+        with open(cmd_file, 'rt', encoding='utf-8') as f:
+            txt = f.read()
+        with open(cmd_file, 'wt', encoding='utf-8') as f:
+            new_txt = re.sub(r"_\d\.\d\.\d", "_" + __version__, txt)
+            f.write(new_txt)
+
     app = QApplication([])
 
     window = MainWindow()
     window.show()
 
-    app.exec_()
+    app.exec()
 
 # 多p测试  https://www.bilibili.com/video/BV1j64y1s7Qp
 # 双p测试  https://www.bilibili.com/video/BV1ti4y1K7uw
