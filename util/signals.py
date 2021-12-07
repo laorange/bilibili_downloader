@@ -1,5 +1,5 @@
 import time
-from PySide2.QtCore import Signal, QObject
+from PySide6.QtCore import Signal, QObject
 
 
 class MySignal(QObject):

@@ -10,9 +10,9 @@ from typing import List
 from threading import Thread
 from urllib.parse import quote, unquote
 
-# import PySide2
+# import PySide6
 import httpx
-from PySide2.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFileDialog
+from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFileDialog
 
 from util.main_ui import Ui_bilibili_downloader
 from util.log_ui import Ui_log
@@ -157,7 +157,7 @@ class MainWindow(QMainWindow):
                 choice = QMessageBox.question(self, "是否更新", f"当前版本：{__version__}\n最新版本：{latest_version}\n\n是否更新？")
                 if choice == QMessageBox.Yes:
                     if sys.platform.startswith('win'):
-                        os.startfile("https://gitee.com/laorange/bilibili_downloader/releases/" + quote(_data.get("tag_name")))
+                        os.startfile("https://gitee.com/laorange/bilibili_downloader/releases/")
                     else:
                         QMessageBox.warning(self, "提示", "由于系统兼容性问题，请通过访问帮助文档中的下载地址来下载最新版本")
         except Exception as e:
@@ -277,7 +277,7 @@ class MainWindow(QMainWindow):
         reply = QMessageBox.question(self, '关闭提示', "是否要退出界面？")
         if reply == QMessageBox.Yes:
             ui_tool_kit.kill_the_download_progress()
-            sys.exit(app.exec_())
+            sys.exit(app.exec())
         elif reply == QMessageBox.No:
             event.ignore()
 
@@ -298,7 +298,7 @@ class LogWindow(QWidget):
         self.ui.clear_log.clicked.connect(self.clear_log)
 
     def clear_log(self):
-        choice: bool = QMessageBox.question(self, "即将删除日志", "是否删除当前的所有日志？")
+        choice: bool = (QMessageBox.question(self, "即将删除日志", "是否删除当前的所有日志？") == QMessageBox.Yes)
         if choice:
             with CursorDecorator(self.db) as c:
                 c.execute("delete from Log where true;")
@@ -382,7 +382,7 @@ if __name__ == '__main__':
     window = MainWindow()
     window.show()
 
-    app.exec_()
+    app.exec()
 
 # 多p测试  https://www.bilibili.com/video/BV1j64y1s7Qp
 # 双p测试  https://www.bilibili.com/video/BV1ti4y1K7uw
