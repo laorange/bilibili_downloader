@@ -19,6 +19,14 @@ class UiToolKit:
         self.recorded_size = 0
 
     @staticmethod
+    def get_formatted_str_from_video_info_list(video_info_list: List[str], threshold_amount: int = 10):
+        if len(video_info_list) > threshold_amount + 1:
+            video_info_showed = "\n".join(video_info_list[:threshold_amount]) + f"\n...等{len(video_info_list)}个视频"
+        else:
+            video_info_showed = "\n".join(video_info_list)
+        return video_info_showed
+
+    @staticmethod
     def enable_download_button():
         my_signal.enable_download_button.emit()
 

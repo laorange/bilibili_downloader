@@ -52,7 +52,8 @@ class NormalVideoParser(VideoParserInterface):
     def get_downloader_list(self):
         downloader_list = []
         page_list = self.get_page_list()
-        for page in page_list:
+        for _index, page in enumerate(page_list):
+            page.part = f"(P{_index + 1})" + page.part
             encrypted_api: str = self.get_encrypted_api(page.c_id, self.quality)
             html = httpx.get(encrypted_api, headers={
                 **MyConfig.base_headers,
@@ -90,8 +91,6 @@ class FanVideoParser(VideoParserInterface):
         return downloader_list
 
     def get_page_list(self) -> List[PageInAPI]:
-        temp_info_dict = {"is_vip": False}
-
         # region step-1 获取season_id
         if not (bv_search := re.search(r'/?bangumi/play/(\w+)/?\??', self.url)):
             raise Exception("解析错误。请检查输入的网址是否正确。")
@@ -122,8 +121,6 @@ class FanVideoParser(VideoParserInterface):
                 self.part = (self.short_title + " " + self.long_title).strip()
                 self.share_url: str = data["share_url"]
                 self.is_vip = (data["badge"] == "会员")
-                if self.is_vip:
-                    temp_info_dict["is_vip"] = True
 
             def __str__(self):
                 return self.part
@@ -154,7 +151,11 @@ class FanVideoParser(VideoParserInterface):
         headers = {**MyConfig.base_headers,
                    'Cookie': "SESSDATA=" + MyConfig.sess_data,
                    'Host': 'api.bilibili.com'}
-        for page in page_list:
+
+        final_page_list = []
+        vip_video_list = []
+        for _index, page in enumerate(page_list):
+            page.part = f"(P{_index + 1})" + page.part
             url_api_step3 = f'https://api.bilibili.com/x/player/playurl?cid=' \
                             f'{page.__getattribute__("cid")}&avid={page.__getattribute__("aid")}&qn={self.quality}'
             print(url_api_step3)
@@ -165,13 +166,17 @@ class FanVideoParser(VideoParserInterface):
                 for _chunk in html_step3['data']['durl']:
                     page.add_url(_chunk['url'])
                     page.add_size(_chunk['size'])
+                final_page_list.append(page)
             except KeyError:
                 if html_step3['code'] != 0:
-                    ui_tool_kit.warning("注意", f'请注意!title:{page.part}，当前集数为B站大会员专享,若想下载,Cookie中请传入大会员的SESSDATA。详情请查看日志。'
-                                              '\n设置方法：在”设置“-”设置cookie“中更新')
+                    vip_video_list.append(page.part)
                     ui_tool_kit.write_log(f"没有大会员，已跳过Page: {page.__dict__}")
                 else:
                     ui_tool_kit.warning("注意", f'请注意!遭遇未知原因解析错误！title:{page.part}，详情请查看日志')
                     ui_tool_kit.write_log(f"出错了，已跳过Page: {page.__dict__}")
-        return page_list
+        if vip_video_list:
+            vip_video_str = ui_tool_kit.get_formatted_str_from_video_info_list(vip_video_list)
+            ui_tool_kit.warning("注意", f'以下视频为B站大会员专享：\n{vip_video_str}'
+                                      f'\n若想下载,Cookie中请传入大会员的SESSDATA。\n设置方法：在”设置“-”设置cookie“')
+        return final_page_list
         # endregion
