@@ -3,6 +3,8 @@ import hashlib
 import json
 import re
 from typing import List, Union  # , Dict
+
+from .common_util import Util
 from .my_classes import MyConfig, PageInAPI, VideoDownloader, ui_tool_kit
 import httpx
 
@@ -15,12 +17,7 @@ class VideoParserInterface(abc.ABC):
         self.downloader_list: List[VideoDownloader] = self.get_downloader_list()
 
     def set_title(self, title: str):
-        # fix: windows文件夹的名字中不能包含 \/:*?"<>|
-        replace_table: dict = {"\\": "_", "/": "_", ":": "：", "*": "x",
-                               "?": "？", '"': "'", "<": "(", ">": ")", "|": "丨"}
-        for forbidden_char, replace_char in replace_table.items():
-            title = title.replace(forbidden_char, replace_char)
-        self.title = title
+        self.title = Util.ensure_safe_file_name(title)
 
     @abc.abstractmethod
     def get_downloader_list(self) -> List[VideoDownloader]:

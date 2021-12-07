@@ -23,13 +23,9 @@ from util.my_classes import MyConfig, ui_tool_kit
 from util.video_handler import VideoHandler
 from util.signals import my_signal
 
+__version__ = "1.1.3"
+
 BASE_DIR = Path(os.path.realpath(sys.argv[0])).resolve().parent
-
-__version__ = "1.1.2"
-
-if sys.version_info.major + 0.1 * sys.version_info.minor < 3.8:
-    input("您的python版本过低，请使用3.8及以上版本，或改写全部的海象运算符( := )")
-    raise EnvironmentError
 
 
 class MainWindow(QMainWindow):
@@ -370,6 +366,17 @@ class CookieWindow(QWidget):
 
 
 if __name__ == '__main__':
+    if sys.version_info.major + 0.1 * sys.version_info.minor < 3.8:
+        input("您的python版本过低，请使用3.8及以上版本，或改写全部的海象运算符( := )")
+        raise EnvironmentError
+
+    if (cmd_file := (BASE_DIR / "cmd.txt")).exists():
+        with open(cmd_file, 'rt', encoding='utf-8') as f:
+            txt = f.read()
+        with open(cmd_file, 'wt', encoding='utf-8') as f:
+            new_txt = re.sub(r"_\d\.\d\.\d", "_" + __version__, txt)
+            f.write(new_txt)
+
     app = QApplication([])
 
     window = MainWindow()

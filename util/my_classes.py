@@ -136,8 +136,9 @@ class PageInAPI:
 
 class VideoDownloader:
     def __init__(self, title, page: PageInAPI):
-        self.title = title
+        self.title = Util.ensure_safe_file_name(title)
         self.page = page
+        self.page.part = Util.ensure_safe_file_name(self.page.part)
         self.local_path = Path(__file__)  # 这里是随便设个值，反正后面要改
 
     async def download(self, save_path: Path, video_format: str = ".flv",
