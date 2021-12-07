@@ -25,7 +25,7 @@ from util.signals import my_signal
 
 BASE_DIR = Path(os.path.realpath(sys.argv[0])).resolve().parent
 
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 
 if sys.version_info.major + 0.1 * sys.version_info.minor < 3.8:
     input("您的python版本过低，请使用3.8及以上版本，或改写全部的海象运算符( := )")
@@ -255,12 +255,13 @@ class MainWindow(QMainWindow):
                 QMessageBox.about(self, "请确认", "已检测到输入，即将开始解析\n解析可能会消耗若干秒钟，还请耐心等待")
 
                 video_handler = VideoHandler(url, self.get_video_quality(), self.video_format, self.SAVE_PATH)
-                video_info_list = [f"{downloader.title}-{downloader.page.part}" for downloader in video_handler.video_parser.downloader_list]
-                if len(video_info_list) > 6:
-                    video_info_showed = "以下视频将会被下载，请确认：\n" + "\n".join(video_info_list[:5]) + f"\n...等{len(video_info_list)}个视频"
-                else:
-                    video_info_showed = f"以下{len(video_info_list)}个视频将会被下载，请确认：\n" + "\n".join(video_info_list)
-                choice = QMessageBox.question(self, "是否开始下载?", video_info_showed)
+
+                video_info_list = []
+                for _index, downloader in enumerate(video_handler.video_parser.downloader_list):
+                    video_info_list.append(f"视频名：{downloader.title}\n{downloader.page.part}" if _index == 0 else downloader.page.part)
+
+                video_info_showed = ui_tool_kit.get_formatted_str_from_video_info_list(video_info_list)
+                choice = QMessageBox.question(self, "是否开始下载?", "以下视频将会被下载，请确认：\n" + video_info_showed)
                 if choice == QMessageBox.Yes:
                     task = Thread(target=download_func)
                     task.start()

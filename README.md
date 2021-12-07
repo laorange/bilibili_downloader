@@ -4,9 +4,11 @@ LICENCE：GPL-3.0
 
 ## ⭐如果能下😁记得STAR⭐
 
-| **项目地址** | **[GitHub平台](https://github.com/laorange/bilibili_downloader/)** | **[Gitee平台](https://gitee.com/laorange/bilibili_downloader/)** |
-| ------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| **下载地址** | **[GitHub发行版](https://github.com/laorange/bilibili_downloader/releases/latest)** | **[Gitee发行版](https://gitee.com/laorange/bilibili_downloader/releases)** |
+
+| **项目地址**                                                 | **下载地址**                                                 |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **[GitHub平台](https://github.com/laorange/bilibili_downloader/)** | **[GitHub发行版](https://github.com/laorange/bilibili_downloader/releases/latest)** |
+| **[Gitee平台](https://gitee.com/laorange/bilibili_downloader/)** | **[Gitee发行版](https://gitee.com/laorange/bilibili_downloader/releases)** |
 
 ## 1.  特点
 
@@ -49,6 +51,11 @@ LICENCE：GPL-3.0
 <img src="static/demo3.png" alt="demo1" style="zoom:50%;" />
 
 ## 5.更新日志
+
+### v1.1.2
+
+- [x] 优化：文件名新增集数前缀，如(P1)
+- [x] 优化：多个vip视频的情况会导致连环弹窗，更改为只弹窗一次
 
 ### v1.1.1
 
