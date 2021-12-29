@@ -34,12 +34,15 @@ class VideoHandler:
 
         _threshold_count = 1
         for _index, downloader in enumerate(self.video_parser.downloader_list):
+            if ui_tool_kit.block:
+                break
             async_tasks.append(downloader.download(self.save_path,
                                                    self.video_format,
                                                    (_index + 1) / len(self.video_parser.downloader_list) * 100))
             if _index / self.async_tasks_max_num >= _threshold_count:
                 _threshold_count += 1
                 download()
+                async_tasks.clear()
         download()
 
 

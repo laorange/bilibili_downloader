@@ -54,7 +54,7 @@ class UiToolKit:
     def set_url_box(text: str = ""):
         my_signal.set_url_box.emit(text)
 
-    # todo: 新增about、critical
+    # 新增about、critical
     @staticmethod
     def about(title: str, text):
         my_signal.output_message_about.emit(title, text)

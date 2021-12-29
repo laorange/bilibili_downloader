@@ -222,7 +222,8 @@ class MainWindow(QMainWindow):
                 ui_tool_kit.enable_download_button()
                 ui_tool_kit.set_download_button_text("取消下载")
                 video_handler.start_download()
-                ui_tool_kit.about("完成", "下载完成！")
+                if not ui_tool_kit.block:
+                    ui_tool_kit.about("完成", "下载完成！")
                 self.open_window_of_a_dir(video_handler.video_parser.downloader_list[0].local_path)
             except Exception as _e:
                 from traceback import print_exc
@@ -239,7 +240,6 @@ class MainWindow(QMainWindow):
                 ui_tool_kit.kill_the_download_progress()
                 time.sleep(1)
                 QMessageBox.warning(self, "警告", "已强行终止下载任务")
-                ui_tool_kit.initialize_status()
 
         elif not url.strip():
             ui_tool_kit.critical("没有检测到输入!", "请在输入链接后再点击下载")
@@ -347,7 +347,7 @@ class CookieWindow(QWidget):
         sess_data, update_datetime_str = self.get_sess_data_and_its_update_time()
         update_datetime = datetime.datetime.strptime(update_datetime_str, MyConfig.time_format)
         if (datetime.datetime.now() - update_datetime).days > 20:
-            QMessageBox.warning(self, "警告", "上一次更新cookie已经是20多天以前了(有效期30天)...\n建议择日不如撞日，赶紧更新一下吧！")
+            QMessageBox.about(self, "提示", "上一次更新cookie已经是20多天以前了(有效期30天)...\n建议择日不如撞日，赶紧更新一下吧?")
         self.ui.update_datetime_text.setText(update_datetime_str)
         self.ui.SESSDATA_INPUT.setText(sess_data)
 
