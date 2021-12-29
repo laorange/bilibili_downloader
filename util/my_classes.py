@@ -56,7 +56,7 @@ class UiToolKit:
 
     # 新增about、critical
     @staticmethod
-    def about(title: str, text):
+    def about(title: str, text="测试"):
         my_signal.output_message_about.emit(title, text)
 
     @staticmethod

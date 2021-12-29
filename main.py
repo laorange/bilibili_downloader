@@ -4,9 +4,10 @@ import re
 import sqlite3
 import sys
 import time
+import json
 import traceback
 from pathlib import Path
-from typing import List
+from typing import List, Dict, Union
 from threading import Thread
 from urllib.parse import quote, unquote
 
@@ -23,9 +24,50 @@ from util.my_classes import MyConfig, ui_tool_kit
 from util.video_handler import VideoHandler
 from util.signals import my_signal
 
-__version__ = "1.1.4"
+__version__ = "1.2.0"
 
 BASE_DIR = Path(os.path.realpath(sys.argv[0])).resolve().parent
+
+
+class JsonConfig(object):
+    def __init__(self, config_path: Path):
+        self.config_dict = self.get_initialize_config()
+        self.config_path: Path = config_path
+        self.load_config_dict()
+
+    @staticmethod
+    def get_initialize_config() -> Dict[str, Union[int, str]]:
+        config_dict = {
+            "Cookie_SESSDATA": quote(MyConfig.sess_data),
+            "Cookie_datetime": Util.get_datetime_str_now(),
+            "MyConfig_save_path": str(BASE_DIR / 'output'),
+            "MyConfig_video_format": '.flv',
+            "MyConfig_video_quality": '16',
+            "MyConfig_async_tasks_max_num": "5"
+        }
+        return config_dict
+
+    def load_config_dict(self):
+        if self.config_path.exists():
+            with open(self.config_path) as config_file:
+                self.config_dict = json.load(config_file)
+        else:
+            self.update_config()
+
+    def update_config(self):
+        with open(self.config_path, "wt") as config_file:
+            json.dump(self.config_dict, config_file, indent=4)
+
+    def get(self, key: str):
+        result = self.config_dict.get(key, None)
+        if not result:
+            self.update_config()
+        return result
+
+    def set(self, key: str, new_value: str):
+        assert key in self.config_dict
+        self.config_dict[key] = new_value
+        self.update_config()
 
 
 class MainWindow(QMainWindow):
@@ -35,26 +77,28 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
         self.setWindowTitle(f"Bilibili-视频下载工具 v{__version__}")
 
-        self.db_name: str = "database.sqlite3"
         self.quality_choices: List[str] = ["16", "32", "64", "80", "112"]
 
         self.db: sqlite3.Connection = self.connect_db()
+        self.config = JsonConfig(BASE_DIR / MyConfig.config_file_name)
         self.log_window = LogWindow(self.db)
-        self.cookie_window = CookieWindow(self.db)
+        self.cookie_window = CookieWindow(self.config)
         self.cookie_window.get_sess_data_and_its_update_time()  # 更新MyConfig里的设置
 
         # region 加载设置
-        self.config: list = self.get_config()
-        self.SAVE_PATH: Path = Path(self.config[1])
-        self.video_format: str = self.config[2]
+        self.SAVE_PATH: Path = Path(self.config.get("MyConfig_save_path"))
+        self.video_format: str = self.config.get("MyConfig_video_format")
         self.ui.video_format.setCurrentText(self.video_format)
-        self.video_quality: str = self.config[3]
+        self.video_quality: str = self.config.get("MyConfig_video_quality")
         self.ui.video_quality.setCurrentIndex(self.quality_choices.index(self.video_quality))
         self.ui.save_path.setText(str(self.SAVE_PATH))
+        self.async_tasks_max_num: int = int(self.config.get("MyConfig_async_tasks_max_num"))
+        self.ui.async_tasks_max_num.setValue(self.async_tasks_max_num)
         # endregion
 
         # region 绑定主窗口-槽事件
-        self.ui.open_base_dir.triggered.connect(self.open_window_of_a_dir)
+        self.ui.open_base_dir.triggered.connect(self.open_base_dir_func)
+        self.ui.open_save_dir.triggered.connect(self.open_save_dir_func)
         self.ui.quit.triggered.connect(self.close)
         self.ui.read_log.triggered.connect(self.read_log)
         self.ui.about_this.triggered.connect(self.about_tis)
@@ -66,6 +110,7 @@ class MainWindow(QMainWindow):
         self.ui.video_format.currentIndexChanged.connect(self.video_format_change_event)
         self.ui.video_quality.currentIndexChanged.connect(self.video_quality_change_event)
         self.ui.download_button.clicked.connect(self.download_button_clicked_event)
+        self.ui.async_tasks_max_num.valueChanged.connect(self.change_async_tasks_max_num_event)
 
         # region 自定义信号绑定的事件
         my_signal.enable_download_button.connect(self.enable_download_button)
@@ -82,31 +127,32 @@ class MainWindow(QMainWindow):
         # endregion
         # endregion
 
-    def get_config(self) -> list:
-        with CursorDecorator(self.db) as c:
-            c.execute("select * from MyConfig")
-            config: tuple = c.fetchone()
-        return list(config)
+    # def get_config(self) -> list:
+    #     with CursorDecorator(self.db) as c:
+    #         c.execute("select * from MyConfig")
+    #         config_dict: tuple = c.fetchone()
+    #     return list(config_dict)
 
     def get_video_quality(self) -> str:
         # quality: (1080p:80;720p:64;480p:32;360p:16)(填写80或64或32或16)
         quality_index = self.ui.video_quality.currentIndex()
         return str(self.quality_choices[quality_index])
 
-    def connect_db(self):
-        db_exists_flag: bool = (db_path := (BASE_DIR / self.db_name)).exists()
+    @staticmethod
+    def connect_db():
+        db_exists_flag: bool = (db_path := (BASE_DIR / MyConfig.db_name)).exists()
         db = sqlite3.connect(str(db_path))
 
         if not db_exists_flag:
             with CursorDecorator(db) as c:
                 c.execute("create table Log (id INTEGER PRIMARY KEY AUTOINCREMENT, datetime char(20), info text)")
-                c.execute("create table MyConfig (id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                          "save_path char(300), video_format char(10), video_quality char(10))")
-                c.execute(f"insert into MyConfig (save_path, video_format, video_quality) "
-                          f"VALUES ('{str(BASE_DIR / 'output')}', '.flv', '16')")
-
-                c.execute("create table Cookie (id INTEGER PRIMARY KEY AUTOINCREMENT, datetime char(20), SESSDATA text)")
-                c.execute(f"insert into Cookie (datetime, SESSDATA) VALUES ('{Util.get_datetime_str_now()}', '{quote(MyConfig.sess_data)}')")
+                # c.execute("create table MyConfig (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                #           "save_path char(300), video_format char(10), video_quality char(10))")
+                # c.execute(f"insert into MyConfig (save_path, video_format, video_quality) "
+                #           f"VALUES ('{str(BASE_DIR / 'output')}', '.flv', '16')")
+                #
+                # c.execute("create table Cookie (id INTEGER PRIMARY KEY AUTOINCREMENT, datetime char(20), SESSDATA text)")
+                # c.execute(f"insert into Cookie (datetime, SESSDATA) VALUES ('{Util.get_datetime_str_now()}', '{quote(MyConfig.sess_data)}')")
         return db
 
     def write_log(self, log_info: str):
@@ -120,9 +166,15 @@ class MainWindow(QMainWindow):
         if sys.platform.startswith('win'):
             if not dir_path:
                 dir_path = BASE_DIR
-            os.startfile(dir_path)
+            os.startfile(Util.ensure_dir_exists(dir_path))
         else:
             QMessageBox.warning(self, "很抱歉", "打开指定文件夹的功能仅支持在Windows上使用")
+
+    def open_base_dir_func(self):
+        self.open_window_of_a_dir(BASE_DIR)
+
+    def open_save_dir_func(self):
+        self.open_window_of_a_dir(self.SAVE_PATH)
 
     def read_log(self):
         self.log_window.showMaximized()
@@ -167,23 +219,30 @@ class MainWindow(QMainWindow):
     # endregion
 
     # region 组件-对应的事件
+    def change_async_tasks_max_num_event(self):
+        async_tasks_max_num = self.ui.async_tasks_max_num.value()
+        self.config.set("MyConfig_async_tasks_max_num", async_tasks_max_num)
+
     def change_save_path_event(self):
         file_dialog = QFileDialog(self)
         if new_save_path := file_dialog.getExistingDirectory(self, "请选择用于保存下载的视频的文件夹"):
             self.SAVE_PATH = Path(new_save_path)
             self.ui.save_path.setText(new_save_path)
-            with CursorDecorator(self.db) as c:
-                c.execute(f"update MyConfig set save_path='{new_save_path}' where true;")
+            # with CursorDecorator(self.db) as c:
+            #     c.execute(f"update MyConfig set save_path='{new_save_path}' where true;")
+            self.config.set("MyConfig_save_path", new_save_path)
 
     def video_format_change_event(self):
         new_video_format = self.ui.video_format.currentText()
-        with CursorDecorator(self.db) as c:
-            c.execute(f"update MyConfig set video_format='{new_video_format}' where true;")
+        # with CursorDecorator(self.db) as c:
+        #     c.execute(f"update MyConfig set video_format='{new_video_format}' where true;")
+        self.config.set("MyConfig_video_format", new_video_format)
 
     def video_quality_change_event(self):
         new_video_quality = self.quality_choices[self.ui.video_quality.currentIndex()]
-        with CursorDecorator(self.db) as c:
-            c.execute(f"update MyConfig set video_quality='{new_video_quality}' where true;")
+        # with CursorDecorator(self.db) as c:
+        #     c.execute(f"update MyConfig set video_quality='{new_video_quality}' where true;")
+        self.config.set("MyConfig_video_quality", new_video_quality)
 
     def enable_download_button(self):
         self.ui.download_button.setEnabled(True)
@@ -250,7 +309,7 @@ class MainWindow(QMainWindow):
                 self.disable_download_button()
                 QMessageBox.about(self, "请确认", "已检测到输入，即将开始解析\n解析可能会消耗若干秒钟，还请耐心等待")
 
-                video_handler = VideoHandler(url, self.get_video_quality(), self.video_format, self.SAVE_PATH)
+                video_handler = VideoHandler(url, self.get_video_quality(), self.video_format, self.SAVE_PATH, self.async_tasks_max_num)
 
                 video_info_list = []
                 for _index, downloader in enumerate(video_handler.video_parser.downloader_list):
@@ -318,9 +377,9 @@ class LogWindow(QWidget):
 
 
 class CookieWindow(QWidget):
-    def __init__(self, database: sqlite3.Connection) -> None:
+    def __init__(self, json_config: JsonConfig) -> None:
         super(CookieWindow, self).__init__()
-        self.db = database
+        self.json_config = json_config
         self.ui = Ui_cookie_ui()
         self.ui.setupUi(self)
 
@@ -332,15 +391,17 @@ class CookieWindow(QWidget):
         self.show_latest_sess_data()
 
     def get_sess_data_and_its_update_time(self):
-        with CursorDecorator(self.db) as c:
-            c.execute("select datetime, SESSDATA from Cookie;")
-            log = c.fetchone()
-            update_datetime_str: str = log[0]
-            sess_data: str = unquote(log[1])
-            if MyConfig.sess_data != sess_data:
-                MyConfig.sess_data = sess_data
-            if MyConfig.sess_data_update_datetime_str != update_datetime_str:
-                MyConfig.sess_data_update_datetime_str = update_datetime_str
+        # with CursorDecorator(self.db) as c:
+        #     c.execute("select datetime, SESSDATA from Cookie;")
+        #     log = c.fetchone()
+        #     update_datetime_str: str = log[0]
+        #     sess_data: str = unquote(log[1])
+        #     if MyConfig.sess_data != sess_data:
+        #         MyConfig.sess_data = sess_data
+        #     if MyConfig.sess_data_update_datetime_str != update_datetime_str:
+        #         MyConfig.sess_data_update_datetime_str = update_datetime_str
+        sess_data = self.json_config.get("Cookie_SESSDATA")
+        update_datetime_str = self.json_config.get("Cookie_datetime")
         return sess_data, update_datetime_str
 
     def show_latest_sess_data(self):
@@ -356,10 +417,9 @@ class CookieWindow(QWidget):
         new_sess_data = self.ui.SESSDATA_INPUT.text()
         if new_sess_data:
             if choice == QMessageBox.Yes:
-                with CursorDecorator(self.db) as c:
-                    sql = f"update Cookie set SESSDATA='{quote(new_sess_data)}', datetime='{Util.get_datetime_str_now()}' where 1=1;"
-                    c.execute(sql)
-                    QMessageBox.about(self, "提示", "更新成功！")
+                self.json_config.set("Cookie_SESSDATA", new_sess_data)
+                self.json_config.set("Cookie_datetime", Util.get_datetime_str_now())
+                QMessageBox.about(self, "提示", "更新成功！")
         else:
             QMessageBox.about(self, "提示", "你的输入是空的哟！")
         self.show_latest_sess_data()

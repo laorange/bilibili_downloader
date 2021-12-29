@@ -7,6 +7,8 @@ from typing import Union, Tuple
 
 class MyConfig:
     """项目的全局变量，哪里需要哪里调"""
+    db_name: str = "database.sqlite3"
+    config_file_name: str = "config.json"
     sess_data_update_datetime_str = "很久很久以前"
     init_sess_data = '75a75cf2%2C1564669876%2Cb7c7b171'
     sess_data = '75a75cf2%2C1564669876%2Cb7c7b171'

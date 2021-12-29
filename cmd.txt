@@ -12,4 +12,4 @@ PySide6-uic ..\cookie.ui -o cookie_ui.py
 activate qt
 d:
 cd D:\programming\py\gui\bilibili_downloader
-pyinstaller -Fw main.py -i static/ico.ico -n bilibili_downloader_1.1.4
+pyinstaller -Fw main.py -i static/ico.ico -n bilibili_downloader_1.2.0

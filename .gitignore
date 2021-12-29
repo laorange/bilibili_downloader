@@ -139,3 +139,4 @@ assets/
 /reference/
 test.py
 请将全部文件解压后再运行程序.txt
+*.json

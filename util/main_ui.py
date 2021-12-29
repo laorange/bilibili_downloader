@@ -3,21 +3,30 @@
 ################################################################################
 ## Form generated from reading UI file 'main.ui'
 ##
-## Created by: Qt User Interface Compiler version 5.15.2
+## Created by: Qt User Interface Compiler version 6.2.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import *
-from PySide6.QtGui import *
-from PySide6.QtWidgets import *
-
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
+    QCursor, QFont, QFontDatabase, QGradient,
+    QIcon, QImage, QKeySequence, QLinearGradient,
+    QPainter, QPalette, QPixmap, QRadialGradient,
+    QTransform)
+from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QGridLayout,
+    QHBoxLayout, QLabel, QLineEdit, QMainWindow,
+    QMenu, QMenuBar, QProgressBar, QPushButton,
+    QSizePolicy, QSpacerItem, QSpinBox, QStatusBar,
+    QToolButton, QVBoxLayout, QWidget)
 
 class Ui_bilibili_downloader(object):
     def setupUi(self, bilibili_downloader):
         if not bilibili_downloader.objectName():
             bilibili_downloader.setObjectName(u"bilibili_downloader")
-        bilibili_downloader.resize(399, 308)
+        bilibili_downloader.resize(420, 316)
         icon = QIcon()
         icon.addFile(u"static/ico.png", QSize(), QIcon.Normal, QIcon.Off)
         bilibili_downloader.setWindowIcon(icon)
@@ -37,6 +46,8 @@ class Ui_bilibili_downloader(object):
         self.set_cookie_action.setObjectName(u"set_cookie_action")
         self.check_for_update_action = QAction(bilibili_downloader)
         self.check_for_update_action.setObjectName(u"check_for_update_action")
+        self.open_save_dir = QAction(bilibili_downloader)
+        self.open_save_dir.setObjectName(u"open_save_dir")
         self.centralwidget = QWidget(bilibili_downloader)
         self.centralwidget.setObjectName(u"centralwidget")
         self.horizontalLayout_6 = QHBoxLayout(self.centralwidget)
@@ -62,7 +73,6 @@ class Ui_bilibili_downloader(object):
         self.label_4.setMinimumSize(QSize(80, 80))
         self.label_4.setMaximumSize(QSize(83, 80))
         font = QFont()
-        font.setFamily(u"Adobe Devanagari")
         font.setPointSize(36)
         self.label_4.setFont(font)
         self.label_4.setAlignment(Qt.AlignCenter)
@@ -175,6 +185,27 @@ class Ui_bilibili_downloader(object):
 
         self.horizontalLayout_3.addWidget(self.video_quality)
 
+        self.line_4 = QFrame(self.centralwidget)
+        self.line_4.setObjectName(u"line_4")
+        self.line_4.setFrameShape(QFrame.VLine)
+        self.line_4.setFrameShadow(QFrame.Sunken)
+
+        self.horizontalLayout_3.addWidget(self.line_4)
+
+        self.label_12 = QLabel(self.centralwidget)
+        self.label_12.setObjectName(u"label_12")
+        self.label_12.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
+
+        self.horizontalLayout_3.addWidget(self.label_12)
+
+        self.async_tasks_max_num = QSpinBox(self.centralwidget)
+        self.async_tasks_max_num.setObjectName(u"async_tasks_max_num")
+        self.async_tasks_max_num.setMinimum(1)
+        self.async_tasks_max_num.setMaximum(6)
+        self.async_tasks_max_num.setValue(5)
+
+        self.horizontalLayout_3.addWidget(self.async_tasks_max_num)
+
         self.horizontalSpacer_5 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         self.horizontalLayout_3.addItem(self.horizontalSpacer_5)
@@ -273,7 +304,7 @@ class Ui_bilibili_downloader(object):
         bilibili_downloader.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(bilibili_downloader)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 399, 23))
+        self.menubar.setGeometry(QRect(0, 0, 420, 22))
         self.menu = QMenu(self.menubar)
         self.menu.setObjectName(u"menu")
         self.menu_2 = QMenu(self.menubar)
@@ -289,6 +320,7 @@ class Ui_bilibili_downloader(object):
         self.menubar.addAction(self.menu_3.menuAction())
         self.menubar.addAction(self.menu_2.menuAction())
         self.menu.addAction(self.open_base_dir)
+        self.menu.addAction(self.open_save_dir)
         self.menu.addSeparator()
         self.menu.addAction(self.quit)
         self.menu_2.addAction(self.help_text)
@@ -307,11 +339,12 @@ class Ui_bilibili_downloader(object):
         self.quit.setText(QCoreApplication.translate("bilibili_downloader", u"\u9000\u51fa", None))
         self.help_text.setText(QCoreApplication.translate("bilibili_downloader", u"\u5e2e\u52a9\u6587\u6863", None))
         self.about_this.setText(QCoreApplication.translate("bilibili_downloader", u"\u5173\u4e8e", None))
-        self.open_base_dir.setText(QCoreApplication.translate("bilibili_downloader", u"\u5de5\u4f5c\u6587\u4ef6\u5939", None))
+        self.open_base_dir.setText(QCoreApplication.translate("bilibili_downloader", u"\u6253\u5f00\u7a0b\u5e8f\u5730\u5740", None))
         self.action_5.setText(QCoreApplication.translate("bilibili_downloader", u"\u6253\u8d4f", None))
         self.read_log.setText(QCoreApplication.translate("bilibili_downloader", u"\u67e5\u770b\u65e5\u5fd7", None))
         self.set_cookie_action.setText(QCoreApplication.translate("bilibili_downloader", u"\u8bbe\u7f6ecookie", None))
         self.check_for_update_action.setText(QCoreApplication.translate("bilibili_downloader", u"\u68c0\u67e5\u66f4\u65b0", None))
+        self.open_save_dir.setText(QCoreApplication.translate("bilibili_downloader", u"\u6253\u5f00\u50a8\u5b58\u5730\u5740", None))
         self.label_4.setText(QCoreApplication.translate("bilibili_downloader", u"\u23ec", None))
         self.label.setText("")
         self.label_5.setText(QCoreApplication.translate("bilibili_downloader", u"\u23ec", None))
@@ -330,6 +363,7 @@ class Ui_bilibili_downloader(object):
         self.video_quality.setItemText(3, QCoreApplication.translate("bilibili_downloader", u"1080P", None))
         self.video_quality.setItemText(4, QCoreApplication.translate("bilibili_downloader", u"1080P+", None))
 
+        self.label_12.setText(QCoreApplication.translate("bilibili_downloader", u"\u5e76\u884c\u4efb\u52a1\u6570\uff1a", None))
         self.label_9.setText(QCoreApplication.translate("bilibili_downloader", u"\u603b\u8fdb\u5ea6", None))
         self.label_8.setText(QCoreApplication.translate("bilibili_downloader", u"\u8fdb\u5ea6", None))
         self.label_10.setText(QCoreApplication.translate("bilibili_downloader", u"\u4e0b\u8f7d\u901f\u5ea6", None))

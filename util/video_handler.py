@@ -5,9 +5,7 @@ from .video_parsers import *
 
 
 class VideoHandler:
-    async_tasks_max_num = 5
-
-    def __init__(self, url, quality: Union[str, int], video_format: str, save_path: Path):
+    def __init__(self, url, quality: Union[str, int], video_format: str, save_path: Path, async_tasks_max_num: int):
         if not url:
             raise Exception("视频地址无效！请重新输入")
         self.url = url
@@ -16,6 +14,7 @@ class VideoHandler:
         self.video_format = video_format
         self.save_path = save_path
         self.video_parser: VideoParserInterface = self.get_proper_video_parser()
+        self.async_tasks_max_num = async_tasks_max_num
 
     def get_proper_video_parser(self) -> VideoParserInterface:
         if "bangumi" in self.url:
@@ -36,13 +35,13 @@ class VideoHandler:
         for _index, downloader in enumerate(self.video_parser.downloader_list):
             if ui_tool_kit.block:
                 break
-            async_tasks.append(downloader.download(self.save_path,
-                                                   self.video_format,
-                                                   (_index + 1) / len(self.video_parser.downloader_list) * 100))
             if _index / self.async_tasks_max_num >= _threshold_count:
                 _threshold_count += 1
                 download()
                 async_tasks.clear()
+            async_tasks.append(downloader.download(self.save_path,
+                                                   self.video_format,
+                                                   (_index + 1) / len(self.video_parser.downloader_list) * 100))
         download()
 
 
