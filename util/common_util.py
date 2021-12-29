@@ -59,7 +59,7 @@ class Util:
                                "?": "？", '"': "'", "<": "(", ">": ")", "|": "丨"}
         for forbidden_char, replace_char in replace_table.items():
             name = name.replace(forbidden_char, replace_char)
-        return name
+        return name.strip()
 
 
 class CursorDecorator:

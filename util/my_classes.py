@@ -142,11 +142,14 @@ class VideoDownloader:
         self.local_path = Path(__file__)  # 这里是随便设个值，反正后面要改
 
     async def download(self, save_path: Path, video_format: str = ".flv",
-                       all_progress_value: Union[int, float] = 0, headers: dict = None):
+                       all_progress_value: Union[int, float] = 0, headers: dict = None, original_url=""):
         try:
             if headers is None:
                 headers = MyConfig.download_base_headers
-            self.local_path = Util.ensure_dir_exists(save_path / self.title)
+            self.local_path: Path = Util.ensure_dir_exists(save_path / self.title)
+            if original_url:
+                with open(self.local_path / "原视频网址.txt") as url_file:
+                    url_file.write(original_url)
 
             for _index, url in enumerate(url_list := self.page.get_url()):
                 if not url_list:

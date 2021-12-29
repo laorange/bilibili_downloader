@@ -5,6 +5,8 @@ from .video_parsers import *
 
 
 class VideoHandler:
+    async_tasks_max_num = 5
+
     def __init__(self, url, quality: Union[str, int], video_format: str, save_path: Path):
         if not url:
             raise Exception("视频地址无效！请重新输入")
@@ -23,15 +25,22 @@ class VideoHandler:
 
     def start_download(self):
         async_tasks = []
+
+        def download():
+            if async_tasks:
+                new_loop = asyncio.new_event_loop()
+                new_loop.run_until_complete(asyncio.wait(async_tasks))
+                new_loop.close()
+
+        _threshold_count = 1
         for _index, downloader in enumerate(self.video_parser.downloader_list):
             async_tasks.append(downloader.download(self.save_path,
                                                    self.video_format,
                                                    (_index + 1) / len(self.video_parser.downloader_list) * 100))
-        new_loop = asyncio.new_event_loop()
-        # asyncio.set_event_loop(new_loop)
-        # loop = asyncio.get_event_loop()
-        new_loop.run_until_complete(asyncio.wait(async_tasks))
-        new_loop.close()
+            if _index / self.async_tasks_max_num >= _threshold_count:
+                _threshold_count += 1
+                download()
+        download()
 
 
 if __name__ == '__main__':

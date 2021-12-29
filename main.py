@@ -23,7 +23,7 @@ from util.my_classes import MyConfig, ui_tool_kit
 from util.video_handler import VideoHandler
 from util.signals import my_signal
 
-__version__ = "1.1.3"
+__version__ = "1.1.4"
 
 BASE_DIR = Path(os.path.realpath(sys.argv[0])).resolve().parent
 
