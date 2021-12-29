@@ -127,12 +127,6 @@ class MainWindow(QMainWindow):
         # endregion
         # endregion
 
-    # def get_config(self) -> list:
-    #     with CursorDecorator(self.db) as c:
-    #         c.execute("select * from MyConfig")
-    #         config_dict: tuple = c.fetchone()
-    #     return list(config_dict)
-
     def get_video_quality(self) -> str:
         # quality: (1080p:80;720p:64;480p:32;360p:16)(填写80或64或32或16)
         quality_index = self.ui.video_quality.currentIndex()
@@ -146,13 +140,6 @@ class MainWindow(QMainWindow):
         if not db_exists_flag:
             with CursorDecorator(db) as c:
                 c.execute("create table Log (id INTEGER PRIMARY KEY AUTOINCREMENT, datetime char(20), info text)")
-                # c.execute("create table MyConfig (id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                #           "save_path char(300), video_format char(10), video_quality char(10))")
-                # c.execute(f"insert into MyConfig (save_path, video_format, video_quality) "
-                #           f"VALUES ('{str(BASE_DIR / 'output')}', '.flv', '16')")
-                #
-                # c.execute("create table Cookie (id INTEGER PRIMARY KEY AUTOINCREMENT, datetime char(20), SESSDATA text)")
-                # c.execute(f"insert into Cookie (datetime, SESSDATA) VALUES ('{Util.get_datetime_str_now()}', '{quote(MyConfig.sess_data)}')")
         return db
 
     def write_log(self, log_info: str):
@@ -228,20 +215,14 @@ class MainWindow(QMainWindow):
         if new_save_path := file_dialog.getExistingDirectory(self, "请选择用于保存下载的视频的文件夹"):
             self.SAVE_PATH = Path(new_save_path)
             self.ui.save_path.setText(new_save_path)
-            # with CursorDecorator(self.db) as c:
-            #     c.execute(f"update MyConfig set save_path='{new_save_path}' where true;")
             self.config.set("MyConfig_save_path", new_save_path)
 
     def video_format_change_event(self):
         new_video_format = self.ui.video_format.currentText()
-        # with CursorDecorator(self.db) as c:
-        #     c.execute(f"update MyConfig set video_format='{new_video_format}' where true;")
         self.config.set("MyConfig_video_format", new_video_format)
 
     def video_quality_change_event(self):
         new_video_quality = self.quality_choices[self.ui.video_quality.currentIndex()]
-        # with CursorDecorator(self.db) as c:
-        #     c.execute(f"update MyConfig set video_quality='{new_video_quality}' where true;")
         self.config.set("MyConfig_video_quality", new_video_quality)
 
     def enable_download_button(self):
@@ -391,15 +372,6 @@ class CookieWindow(QWidget):
         self.show_latest_sess_data()
 
     def get_sess_data_and_its_update_time(self):
-        # with CursorDecorator(self.db) as c:
-        #     c.execute("select datetime, SESSDATA from Cookie;")
-        #     log = c.fetchone()
-        #     update_datetime_str: str = log[0]
-        #     sess_data: str = unquote(log[1])
-        #     if MyConfig.sess_data != sess_data:
-        #         MyConfig.sess_data = sess_data
-        #     if MyConfig.sess_data_update_datetime_str != update_datetime_str:
-        #         MyConfig.sess_data_update_datetime_str = update_datetime_str
         sess_data = self.json_config.get("Cookie_SESSDATA")
         update_datetime_str = self.json_config.get("Cookie_datetime")
         return sess_data, update_datetime_str
@@ -443,7 +415,3 @@ if __name__ == '__main__':
     window.show()
 
     app.exec()
-
-# 多p测试  https://www.bilibili.com/video/BV1j64y1s7Qp
-# 双p测试  https://www.bilibili.com/video/BV1ti4y1K7uw
-# 单p测试  https://www.bilibili.com/video/BV13o4y1U7hR

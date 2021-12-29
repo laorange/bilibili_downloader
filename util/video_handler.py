@@ -46,6 +46,4 @@ class VideoHandler:
 
 
 if __name__ == '__main__':
-    # https://www.bilibili.com/video/BV11K411376D
-    # https://www.bilibili.com/video/BV13o4y1U7hR
     print()
