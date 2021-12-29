@@ -63,7 +63,7 @@ class NormalVideoParser(VideoParserInterface):
         return downloader_list
 
     @staticmethod
-    def get_encrypted_api(c_id, quality) -> str:
+    def get_encrypted_api(c_id, quality: Union[str, int]) -> str:
         # entropy = 'rbMCKn@KuamXWlPMoJGsKcbiJKUfkPF_8dABscJntvqhRSETg'
         # app_key, sec = ''.join([chr(ord(i) + 2) for i in entropy[::-1]]).split(':')
         app_key, sec = ('iVGUTjsxvpLeuDCf', 'aHRmhWMLkdeMuILqORnYZocwMBpMEOdt')
@@ -72,9 +72,6 @@ class NormalVideoParser(VideoParserInterface):
         return f'https://interface.bilibili.com/v2/playurl?{params}&sign={sign_key}'
 
 
-# window.__INITIAL_STATE__.mediaInfo.param.season_id
-# https://www.bilibili.com/read/cv5293665/
-# https://www.bilibili.com/bangumi/play/ss2572
 class FanVideoParser(VideoParserInterface):
     def __init__(self, url: str, quality: Union[str, int]):
         # if MyConfig.sess_data == MyConfig.init_sess_data:
