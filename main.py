@@ -38,7 +38,7 @@ class JsonConfig(object):
     @staticmethod
     def get_initialize_config() -> Dict[str, Union[int, str]]:
         config_dict = {
-            "Cookie_SESSDATA": quote(MyConfig.sess_data),
+            "Cookie_SESSDATA": MyConfig.sess_data,
             "Cookie_datetime": Util.get_datetime_str_now(),
             "MyConfig_save_path": str(BASE_DIR / 'output'),
             "MyConfig_video_format": '.flv',
@@ -55,14 +55,13 @@ class JsonConfig(object):
             self.update_config()
 
     def update_config(self):
-        with open(self.config_path, "wt") as config_file:
+        with open(self.config_path, "wt", encoding="utf-8") as config_file:
             json.dump(self.config_dict, config_file, indent=4)
 
     def get(self, key: str):
-        result = self.config_dict.get(key, None)
-        if not result:
-            self.update_config()
-        return result
+        if key not in self.config_dict:
+            self.config_dict = self.get_initialize_config()
+        return self.config_dict.get(key)
 
     def set(self, key: str, new_value: str):
         assert key in self.config_dict
@@ -94,6 +93,7 @@ class MainWindow(QMainWindow):
         self.ui.save_path.setText(str(self.SAVE_PATH))
         self.async_tasks_max_num: int = int(self.config.get("MyConfig_async_tasks_max_num"))
         self.ui.async_tasks_max_num.setValue(self.async_tasks_max_num)
+        MyConfig.sess_data = self.config.get("Cookie_SESSDATA")
         # endregion
 
         # region 绑定主窗口-槽事件
@@ -266,9 +266,8 @@ class MainWindow(QMainWindow):
                     ui_tool_kit.about("完成", "下载完成！")
                 self.open_window_of_a_dir(video_handler.video_parser.downloader_list[0].local_path)
             except Exception as _e:
-                from traceback import print_exc
                 print_exc()
-                self.write_log(str(_e))
+                ui_tool_kit.write_log(traceback.format_exc())
                 ui_tool_kit.critical("出错了", str(_e))
             finally:
                 ui_tool_kit.initialize_status()
@@ -391,6 +390,7 @@ class CookieWindow(QWidget):
             if choice == QMessageBox.Yes:
                 self.json_config.set("Cookie_SESSDATA", new_sess_data)
                 self.json_config.set("Cookie_datetime", Util.get_datetime_str_now())
+                MyConfig.sess_data = self.json_config.get("Cookie_SESSDATA")
                 QMessageBox.about(self, "提示", "更新成功！")
         else:
             QMessageBox.about(self, "提示", "你的输入是空的哟！")
