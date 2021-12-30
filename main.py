@@ -11,20 +11,18 @@ from typing import List, Dict, Union
 from threading import Thread
 from urllib.parse import quote, unquote
 
-# import PySide6
 import httpx
 from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFileDialog
 
 from util.main_ui import Ui_bilibili_downloader
 from util.log_ui import Ui_log
 from util.cookie_ui import Ui_cookie_ui
-
 from util.common_util import Util, CursorDecorator
 from util.my_classes import MyConfig, ui_tool_kit
 from util.video_handler import VideoHandler
 from util.signals import my_signal
 
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 
 BASE_DIR = Path(os.path.realpath(sys.argv[0])).resolve().parent
 
@@ -106,6 +104,7 @@ class MainWindow(QMainWindow):
         self.ui.set_cookie_action.triggered.connect(self.set_cookie_action)
         self.ui.check_for_update_action.triggered.connect(self.check_for_update)
 
+        self.ui.open_save_dir_button.clicked.connect(self.open_save_dir_func)
         self.ui.change_save_path.clicked.connect(self.change_save_path_event)
         self.ui.video_format.currentIndexChanged.connect(self.video_format_change_event)
         self.ui.video_quality.currentIndexChanged.connect(self.video_quality_change_event)

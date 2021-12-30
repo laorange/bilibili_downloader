@@ -148,7 +148,7 @@ class VideoDownloader:
                 headers = MyConfig.download_base_headers
             self.local_path: Path = Util.ensure_dir_exists(save_path / self.title)
             if original_url:
-                with open(self.local_path / "原视频网址.txt") as url_file:
+                with open(self.local_path / "原视频网址.txt", "wt") as url_file:
                     url_file.write(original_url)
 
             for _index, url in enumerate(url_list := self.page.get_url()):
