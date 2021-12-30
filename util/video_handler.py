@@ -30,6 +30,7 @@ class VideoHandler:
                 new_loop = asyncio.new_event_loop()
                 new_loop.run_until_complete(asyncio.wait(async_tasks))
                 new_loop.close()
+                async_tasks.clear()
 
         _threshold_count = 1
         for _index, downloader in enumerate(self.video_parser.downloader_list):
@@ -38,10 +39,10 @@ class VideoHandler:
             if _index / self.async_tasks_max_num >= _threshold_count:
                 _threshold_count += 1
                 download()
-                async_tasks.clear()
             async_tasks.append(downloader.download(self.save_path,
                                                    self.video_format,
-                                                   (_index + 1) / len(self.video_parser.downloader_list) * 100))
+                                                   (_index + 1) / len(self.video_parser.downloader_list) * 100,
+                                                   original_url=self.url))
         download()
 
 

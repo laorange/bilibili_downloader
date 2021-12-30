@@ -144,7 +144,15 @@ class Ui_bilibili_downloader(object):
 
         self.horizontalLayout_5.addWidget(self.save_path)
 
-        self.horizontalLayout_5.setStretch(2, 1)
+        self.open_save_dir_button = QToolButton(self.centralwidget)
+        self.open_save_dir_button.setObjectName(u"open_save_dir_button")
+
+        self.horizontalLayout_5.addWidget(self.open_save_dir_button)
+
+        self.horizontalSpacer_6 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_5.addItem(self.horizontalSpacer_6)
+
 
         self.verticalLayout.addLayout(self.horizontalLayout_5)
 
@@ -353,6 +361,7 @@ class Ui_bilibili_downloader(object):
         self.label_3.setText(QCoreApplication.translate("bilibili_downloader", u"\u4fdd\u5b58\u8def\u5f84\uff1a", None))
         self.change_save_path.setText(QCoreApplication.translate("bilibili_downloader", u"\u66f4\u6539", None))
         self.save_path.setText(QCoreApplication.translate("bilibili_downloader", u"-----", None))
+        self.open_save_dir_button.setText(QCoreApplication.translate("bilibili_downloader", u"\u6253\u5f00", None))
         self.label_7.setText(QCoreApplication.translate("bilibili_downloader", u"\u6587\u4ef6\u683c\u5f0f\uff1a", None))
         self.video_format.setItemText(0, QCoreApplication.translate("bilibili_downloader", u".flv", None))
 

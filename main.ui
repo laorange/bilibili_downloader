@@ -190,7 +190,7 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,1">
+       <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,0,0,0">
         <item>
          <widget class="QLabel" name="label_3">
           <property name="text">
@@ -214,6 +214,26 @@
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
           </property>
          </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="open_save_dir_button">
+          <property name="text">
+           <string>打开</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_6">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </item>
