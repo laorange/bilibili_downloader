@@ -1,6 +1,6 @@
 # Bilibili_downloader
 
-LICENCE：GPL-3.0
+LICENCE：AGPL-3.0
 
 ## ⭐如果能下😁记得STAR⭐
 
