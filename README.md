@@ -2,6 +2,8 @@
 
 LICENCE：AGPL-3.0
 
+> 注：当前版本鲁棒性不高，在网络波动时会导致下载失败（[查看详情](https://github.com/laorange/bilibili_downloader/issues/7)），建议在下载时保持页面在最上层。还有好些比较粗糙的地方，下次更新时尽量尽量尽量优化...
+
 ## ⭐如果能下😁记得STAR⭐
 
 
